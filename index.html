@@ -1,521 +1,4 @@
-<script>
-        // Global variables for tracking current state
-        let currentTopicId = '';
-        let currentProblemIndex = 0;
-        let problemsByTopic = {};
-        
-        // Show home page or topic page
-        function showHomePage() {
-            document.getElementById('home-page').classList.remove('hidden');
-            document.getElementById('topic-page').classList.add('hidden');
-            
-            // Reset current problem index
-            currentProblemIndex = 0;
-        }
-        
-        function showTopic(topicId) {
-            document.getElementById('home-page').classList.add('hidden');
-            document.getElementById('topic-page').classList.remove('hidden');
-            
-            currentTopicId = topicId;
-            currentProblemIndex = 0;
-            
-            // Set the current topic title
-            const topicTitles = {
-                'arrays-hashing': 'Arrays and Hashing',
-                'two-pointers': 'Two Pointers',
-                'sliding-window': 'Sliding Window',
-                'binary-search': 'Binary Search',
-                'stack': 'Stack',
-                'linked-list': 'Linked List',
-                'trees': 'Trees',
-                'trie': 'Trie',
-                'heap-priority-queue': 'Heap/Priority Queue',
-                'backtracking': 'Backtracking',
-                'graphs': 'Graphs',
-                'advanced-graphs': 'Advanced Graphs',
-                '1d-dp': '1-D Dynamic Programming',
-                '2d-dp': '2-D Dynamic Programming',
-                'greedy': 'Greedy',
-                'intervals': 'Intervals',
-                'math-geometry': 'Math & Geometry',
-                'bit-manipulation': 'Bit Manipulation'
-            };
-            
-            document.getElementById('current-topic-title').textContent = topicTitles[topicId];
-            
-            // Get all problem cards for this topic
-            const topicProblems = document.querySelectorAll(`.${topicId}-problem`);
-            
-            // Hide all problem cards
-            const allProblems = document.querySelectorAll('.flashcard');
-            allProblems.forEach(problem => {
-                problem.classList.add('hidden');
-            });
-            
-            // Show only the first problem for this topic
-            if (topicProblems.length > 0) {
-                topicProblems[0].classList.remove('hidden');
-                
-                // Update problem counter
-                document.getElementById('current-problem').textContent = 1;
-                document.getElementById('total-problems').textContent = topicProblems.length;
-                
-                // Enable/disable navigation buttons
-                document.getElementById('prev-btn').disabled = true;
-                document.getElementById('next-btn').disabled = topicProblems.length <= 1;
-            }
-        }
-        
-        // Navigate between problems
-        function navigateProblem(direction) {
-            // Get all problem cards for current topic
-            const topicProblems = document.querySelectorAll(`.${currentTopicId}-problem`);
-            
-            // Hide current problem
-            topicProblems[currentProblemIndex].classList.add('hidden');
-            // Unflip the card when moving to a new problem
-            topicProblems[currentProblemIndex].classList.remove('flipped');
-            
-            // Update index
-            currentProblemIndex += direction;
-            
-            // Show new problem
-            topicProblems[currentProblemIndex].classList.remove('hidden');
-            
-            // Update problem counter
-            document.getElementById('current-problem').textContent = currentProblemIndex + 1;
-            
-            // Update button state
-            document.getElementById('prev-btn').disabled = currentProblemIndex === 0;
-            document.getElementById('next-btn').disabled = currentProblemIndex === topicProblems.length - 1;
-        }
-        
-        // Flip card functionality
-        function flipCard(card) {
-            card.classList.toggle('flipped');
-        }
-        
-        // Tab navigation in solution - STOP PROPAGATION to prevent card flipping
-        function showTab(button, tabId) {
-            // Prevent the click from bubbling up to the card
-            event.stopPropagation();
-            
-            // Get the parent card back
-            const cardBack = button.closest('.card-back');
-            
-            // Remove active class from all tabs and buttons
-            const tabButtons = cardBack.querySelectorAll('.tab-btn');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            
-            const tabContents = cardBack.querySelectorAll('.tab-content');
-            tabContents.forEach(tab => tab.classList.remove('active'));
-            
-            // Add active class to clicked button and corresponding tab
-            button.classList.add('active');
-            cardBack.querySelector(`#${tabId}`).classList.add('active');
-        }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Arrays and Hashing problems
-            const arraysProblems = [
-                {
-                    id: 'contains-duplicate',
-                    title: 'Contains Duplicate',
-                    difficulty: 'easy',
-                    content: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
-                    oneLiner: 'Use a set to check if any element repeats.',
-                    threeLiner: 'We go through each number.<br>We keep a list of ones we\'ve already seen.<br>If a number shows up again, we know it\'s a duplicate.',
-                    mnemonics: [
-                        '"Seen before?" → if num in seen: return True',
-                        '"Add new" → seen.add(num)',
-                        '"End clean" → return False'
-                    ],
-                    code: `def containsDuplicate(nums):
-    seen = set()
-    for num in nums:
-        if num in seen:
-            return True
-        seen.add(num)
-    return False`
-                },
-                {
-                    id: 'valid-anagram',
-                    title: 'Valid Anagram',
-                    difficulty: 'easy',
-                    content: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of a different word, using all the original letters exactly once.',
-                    oneLiner: 'Compare character counts in both strings.',
-                    threeLiner: 'Count how many times each letter appears in both strings.<br>If every letter occurs the same number of times, it\'s an anagram.<br>If not, it\'s not an anagram.',
-                    mnemonics: [
-                        '"Count chars" → Counter(s) == Counter(t)',
-                        '"Length check" → if len(s) != len(t): return False',
-                        '"Count compare" → For each char, compare counts'
-                    ],
-                    code: `def isAnagram(s, t):
-    if len(s) != len(t):
-        return False
-    
-    count_s, count_t = {}, {}
-    
-    for i in range(len(s)):
-        count_s[s[i]] = count_s.get(s[i], 0) + 1
-        count_t[t[i]] = count_t.get(t[i], 0) + 1
-    
-    return count_s == count_t`
-                },
-                {
-                    id: 'two-sum',
-                    title: 'Two Sum',
-                    difficulty: 'easy',
-                    content: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
-                    oneLiner: 'Use a hash map to store complements.',
-                    threeLiner: 'For each number, calculate its complement (target - number).<br>Store each number and its index in a hash map.<br>If you find a complement in the map, return both indices.',
-                    mnemonics: [
-                        '"Complement check" → if target - num in seen',
-                        '"Store index" → seen[num] = i',
-                        '"Return pairs" → return [seen[target - num], i]'
-                    ],
-                    code: `def twoSum(nums, target):
-    seen = {}  # val -> index
-    
-    for i, num in enumerate(nums):
-        complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
-        seen[num] = i
-    
-    return []  # No solution found`
-                },
-                {
-                    id: 'group-anagrams',
-                    title: 'Group Anagrams',
-                    difficulty: 'medium',
-                    content: 'Given an array of strings strs, group the anagrams together. You can return the answer in any order. An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.',
-                    oneLiner: 'Use sorted strings as hash map keys.',
-                    threeLiner: 'When words are anagrams, they have the same letters.<br>Sort each word\'s letters to create a unique key.<br>Group words with the same key together.',
-                    mnemonics: [
-                        '"Sort as key" → key = "".join(sorted(word))',
-                        '"Group by key" → result[key].append(word)',
-                        '"Return groups" → return list(result.values())'
-                    ],
-                    code: `def groupAnagrams(strs):
-    anagram_groups = {}
-    
-    for word in strs:
-        # Sort the word to use as a key
-        sorted_word = ''.join(sorted(word))
-        
-        # Add to existing group or create new group
-        if sorted_word in anagram_groups:
-            anagram_groups[sorted_word].append(word)
-        else:
-            anagram_groups[sorted_word] = [word]
-    
-    # Return all groups
-    return list(anagram_groups.values())`
-                },
-                {
-                    id: 'top-k-frequent',
-                    title: 'Top K Frequent Elements',
-                    difficulty: 'medium',
-                    content: 'Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.',
-                    oneLiner: 'Count frequencies, then use bucket sort or heap.',
-                    threeLiner: 'Count how often each number appears.<br>Sort the numbers by their counts.<br>Return the k numbers with highest counts.',
-                    mnemonics: [
-                        '"Count freqs" → counter = Counter(nums)',
-                        '"Sort by freq" → counter.most_common(k)',
-                        '"Extract nums" → [num for num, _ in most_common]'
-                    ],
-                    code: `def topKFrequent(nums, k):
-    # Count frequencies
-    count = {}
-    for num in nums:
-        count[num] = count.get(num, 0) + 1
-    
-    # Create buckets (frequency -> list of numbers)
-    freq = [[] for _ in range(len(nums) + 1)]
-    for num, count in count.items():
-        freq[count].append(num)
-    
-    # Collect top k elements
-    result = []
-    for i in range(len(freq) - 1, 0, -1):
-        for num in freq[i]:
-            result.append(num)
-            if len(result) == k:
-                return result`
-                }
-            ];
-            
-            // Two Pointers problems
-            const twoPointersProblems = [
-                {
-                    id: 'valid-palindrome',
-                    title: 'Valid Palindrome',
-                    difficulty: 'easy',
-                    content: 'Given a string s, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases. A palindrome reads the same backward as forward.',
-                    oneLiner: 'Use two pointers from both ends, comparing characters after filtering.',
-                    threeLiner: 'Ignore characters that aren\'t letters or numbers.<br>Check if the first letter matches the last letter, then move inward.<br>If they all match, it\'s a palindrome!',
-                    mnemonics: [
-                        '"Skip non-alphanumeric" → while not char.isalnum()',
-                        '"Compare lowercase" → if s[l].lower() != s[r].lower(): return False',
-                        '"Move inward" → l++, r--'
-                    ],
-                    code: `def isPalindrome(s):
-    l, r = 0, len(s) - 1
-    
-    while l < r:
-        while l < r and not s[l].isalnum():
-            l += 1
-        while l < r and not s[r].isalnum():
-            r -= 1
-            
-        if s[l].lower() != s[r].lower():
-            return False
-            
-        l += 1
-        r -= 1
-        
-    return True`
-                },
-                {
-                    id: 'container-with-most-water',
-                    title: 'Container With Most Water',
-                    difficulty: 'medium',
-                    content: 'Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0). Find two lines, which, together with the x-axis, forms a container that contains the most water.',
-                    oneLiner: 'Use two pointers from both ends to maximize area.',
-                    threeLiner: 'Start with the widest container (left and right ends).<br>Calculate area as width × minimum height.<br>Move the pointer at the shorter wall inward.',
-                    mnemonics: [
-                        '"Area formula" → area = min(height[l], height[r]) * (r - l)',
-                        '"Move shorter wall" → if height[l] < height[r]: l++ else r--',
-                        '"Track max" → max_area = max(max_area, area)'
-                    ],
-                    code: `def maxArea(height):
-    l, r = 0, len(height) - 1
-    max_area = 0
-    
-    while l < r:
-        area = min(height[l], height[r]) * (r - l)
-        max_area = max(max_area, area)
-        
-        if height[l] < height[r]:
-            l += 1
-        else:
-            r -= 1
-            
-    return max_area`
-                },
-                {
-                    id: 'three-sum',
-                    title: '3Sum',
-                    difficulty: 'medium',
-                    content: 'Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets.',
-                    oneLiner: 'Sort array, then use two-pointer approach for each value.',
-                    threeLiner: 'Sort the array first.<br>For each number, use two pointers to find pairs that sum to its negative.<br>Skip duplicates to avoid repeating the same triplet.',
-                    mnemonics: [
-                        '"Sort first" → nums.sort()',
-                        '"Iterate & 2sum" → for i in range(n): twoSum(nums, i)',
-                        '"Skip dups" → while j < k and nums[j] == nums[j-1]: j += 1'
-                    ],
-                    code: `def threeSum(nums):
-    nums.sort()
-    triplets = []
-    n = len(nums)
-    
-    for i in range(n):
-        # Skip duplicate first elements
-        if i > 0 and nums[i] == nums[i-1]:
-            continue
-            
-        # Two Sum II approach for the remaining elements
-        left, right = i + 1, n - 1
-        target = -nums[i]
-        
-        while left < right:
-            current_sum = nums[left] + nums[right]
-            
-            if current_sum < target:
-                left += 1
-            elif current_sum > target:
-                right -= 1
-            else:
-                triplets.append([nums[i], nums[left], nums[right]])
-                
-                # Skip duplicates
-                left += 1
-                while left < right and nums[left] == nums[left-1]:
-                    left += 1
-        
-    return triplets`
-                }
-            ];
-            
-            // 1D Dynamic Programming problems
-            const dp1DProblems = [
-                {
-                    id: 'climbing-stairs',
-                    title: 'Climbing Stairs',
-                    difficulty: 'easy',
-                    content: 'You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?',
-                    oneLiner: 'Use Fibonacci-style bottom-up DP to count steps.',
-                    threeLiner: 'You can climb 1 or 2 stairs at a time.<br>Count how many ways to get to each stair.<br>It\'s like adding ways from two previous steps.',
-                    mnemonics: [
-                        '"Fibonacci step" → first, second = second, first + second',
-                        '"Start base" → first, second = 1, 2',
-                        '"Return top" → return second'
-                    ],
-                    code: `def climbStairs(n):
-    if n <= 2:
-        return n
-    first, second = 1, 2
-    for _ in range(3, n + 1):
-        first, second = second, first + second
-    return second`
-                },
-                {
-                    id: 'house-robber',
-                    title: 'House Robber',
-                    difficulty: 'medium',
-                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected, and they will automatically contact the police if two adjacent houses were broken into on the same night. Given an array of non-negative integers representing the amount of money of each house, determine the maximum amount of money you can rob tonight without alerting the police.',
-                    oneLiner: 'Use DP to track max loot by either robbing or skipping each house.',
-                    threeLiner: 'Can\'t rob two houses in a row.<br>Each time, choose: rob this or skip it.<br>Keep track of best steal.',
-                    mnemonics: [
-                        '"Rob or skip" → first, second = second, max(second, first + num)',
-                        '"Track rolling max" → first, second = 0, 0',
-                        '"Final loot" → return second'
-                    ],
-                    code: `def rob(nums):
-    if not nums:
-        return 0
-    if len(nums) == 1:
-        return nums[0]
-    first, second = 0, 0
-    for num in nums:
-        first, second = second, max(second, first + num)
-    return second`
-                },
-                {
-                    id: 'house-robber-ii',
-                    title: 'House Robber II',
-                    difficulty: 'medium',
-                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. All houses at this place are arranged in a circle. That means the first house is the neighbor of the last one. Meanwhile, adjacent houses have a security system connected, and it will automatically contact the police if two adjacent houses were broken into on the same night. Given an array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.',
-                    oneLiner: 'Apply House Robber twice: once without the first house, once without the last.',
-                    threeLiner: 'Houses form a circle, so first and last are neighbors.<br>Consider two scenarios: skip the first house or skip the last.<br>Take the maximum result from those two cases.',
-                    mnemonics: [
-                        '"Two cases" → rob(nums[1:]) or rob(nums[:-1])',
-                        '"Reuse House Robber" → Define helper for linear case',
-                        '"Take max" → return max(rob1, rob2)'
-                    ],
-                    code: `def rob(nums):
-    def rob_helper(houses):
-        prev1, prev2 = 0, 0
-        for house in houses:
-            prev1, prev2 = prev2, max(prev2, prev1 + house)
-        return prev2
-    
-    if len(nums) == 0:
-        return 0
-    if len(nums) == 1:
-        return nums[0]
-    
-    # Rob houses 1 to n-1 (excluding the last house)
-    rob1 = rob_helper(nums[:-1])
-    # Rob houses 2 to n (excluding the first house)
-    rob2 = rob_helper(nums[1:])
-    
-    return max(rob1, rob2)`
-                }
-            ];
-            
-            // Build problem cards for all categories
-            buildProblemCards('arrays-hashing', arraysProblems);
-            buildProblemCards('two-pointers', twoPointersProblems);
-            buildProblemCards('1d-dp', dp1DProblems);
-            
-            // More topics can be added similarly
-            
-            // Show homepage by default
-            showHomePage();
-        });
-        
-        // Function to build and add all problem cards for a topic
-        function buildProblemCards(topicId, problems) {
-            const container = document.querySelector('.flashcard-container');
-            
-            problems.forEach((problem, index) => {
-                // Create the flashcard element
-                const flashcard = document.createElement('div');
-                flashcard.id = `${topicId}-${index+1}`;
-                flashcard.className = `flashcard ${topicId}-problem hidden`;
-                flashcard.onclick = function() { flipCard(this); };
-                
-                // Create the card inner HTML
-                flashcard.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="card-title">
-                                ${problem.title}
-                                <span class="difficulty ${problem.difficulty}">${problem.difficulty}</span>
-                            </div>
-                            <div class="card-content">
-                                <p>${problem.content}</p>
-                            </div>
-                            <div class="flip-indicator">Click to flip</div>
-                        </div>
-                        <div class="card-back">
-                            <div class="card-title">${problem.title} - Solution</div>
-                            <div class="solution-tabs">
-                                <button class="tab-btn active" onclick="showTab(this, '${topicId}-${index}-oneliner')">One-liner</button>
-                                <button class="tab-btn" onclick="showTab(this, '${topicId}-${index}-code')">Code</button>
-                            </div>
-                            
-                            <div id="${topicId}-${index}-oneliner" class="tab-content active">
-                                <div class="one-liner">
-                                    <h3>One-liner:</h3>
-                                    <p>${problem.oneLiner}</p>
-                                </div>
-                            </div>
-                            
-                            <div id="${topicId}-${index}-threeliner" class="tab-content">
-                                <div class="three-liner">
-                                    <h3>3-liner for kids:</h3>
-                                    <p>${problem.threeLiner}</p>
-                                </div>
-                            </div>
-                            
-                            <div id="${topicId}-${index}-mnemonic" class="tab-content">
-                                <div class="mnemonic">
-                                    <h3>Mnemonics:</h3>
-                                    <ul>
-                                        ${problem.mnemonics.map(m => `<li>${m}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                            
-                            <div id="${topicId}-${index}-code" class="tab-content">
-                                <div class="code-block">
-                                    <code>${problem.code}</code>
-                                </div>
-                            </div>
-                            
-                            <div class="flip-indicator">Click to flip back</div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add the flashcard to the container
-                container.appendChild(flashcard);
-            });
-            
-            // Store the problems for this topic
-            problemsByTopic[topicId] = problems;
-        }
-    </script>
-</body>
-</html>(this, '${topicId}-${index}-threeliner')">3-liner</button>
-                                <button class="tab-btn" onclick="showTab(this, '${topicId}-${index}-mnemonic')">Mnemonic</button>
-                                <button class="tab-btn" onclick="showTab<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -756,7 +239,6 @@
             display: flex;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             margin-bottom: 1rem;
-            overflow-x: auto;
         }
         
         .solution-tabs button {
@@ -778,8 +260,6 @@
         
         .tab-content {
             display: none;
-            height: 65%;
-            overflow-y: auto;
         }
         
         .tab-content.active {
@@ -796,13 +276,10 @@
             font-family: "Courier New", monospace;
             font-size: 0.9rem;
             line-height: 1.5;
-            max-height: 100%;
         }
         
         .code-block code {
             color: #e6e6e6;
-            white-space: pre;
-            display: block;
         }
         
         /* Content styling */
@@ -924,7 +401,7 @@
             <div class="topic-card" onclick="showTopic('graphs')">
                 <div class="topic-title">Graphs</div>
                 <div class="topic-info">Network and connection problems</div>
-                <div class="problem-count">13 problems</div>
+                <div class="problem-count">11 problems</div>
             </div>
             
             <div class="topic-card" onclick="showTopic('advanced-graphs')">
@@ -987,253 +464,8 @@
             </div>
         </div>
         
-        <div class="flashcard-container">
-            <!-- Example flashcard for Network Delay Time -->
-            <div id="advanced-graphs-1" class="flashcard" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="card-title">
-                            Network Delay Time
-                            <span class="difficulty medium">Medium</span>
-                        </div>
-                        <div class="card-content">
-                            <p>You are given a network of n nodes, labeled from 1 to n. You are also given times, a list of travel times as directed edges where times[i] = (ui, vi, wi) means node ui to node vi takes wi time. Return the minimum time it takes for all the n nodes to receive the signal, or -1 if it is impossible.</p>
-                        </div>
-                        <div class="flip-indicator">Click to flip</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="card-title">Network Delay Time - Solution</div>
-                        <div class="solution-tabs">
-                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
-                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
-                        </div>
-                        
-                        <div id="one-liner-tab" class="tab-content active">
-                            <div class="one-liner">
-                                <h3>One-liner:</h3>
-                                <p>Use Dijkstra's algorithm to find shortest time to all nodes.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="three-liner-tab" class="tab-content">
-                            <div class="three-liner">
-                                <h3>3-liner for kids:</h3>
-                                <p>We send a signal from one point.<br>
-                                We figure out how fast it can reach every other point.<br>
-                                The longest of those times is our answer.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="mnemonic-tab" class="tab-content">
-                            <div class="mnemonic">
-                                <h3>Mnemonics:</h3>
-                                <ul>
-                                    <li>"Build graph" → graph[u].append((v, w))</li>
-                                    <li>"Min-heap Dijkstra" → heappop(heap) gives node with smallest time</li>
-                                    <li>"Update time" → if new_time < dist[v]: update and push</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div id="code-tab" class="tab-content">
-                            <div class="code-block">
-                                <code>
-def networkDelayTime(times, n, k):
-    edges = collections.defaultdict(list)
-    for u, v, w in times:
-        edges[u].append((v, w))
-
-    minHeap = [(0, k)]
-    visit = set()
-    t = 0
-    while minHeap:
-        w1, n1 = heapq.heappop(minHeap)
-        if n1 in visit:
-            continue
-        visit.add(n1)
-        t = w1
-
-        for n2, w2 in edges[n1]:
-            if n2 not in visit:
-                heapq.heappush(minHeap, (w1 + w2, n2))
-    return t if len(visit) == n else -1
-                                </code>
-                            </div>
-                        </div>
-                        
-                        <div class="flip-indicator">Click to flip back</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Reconstruct Itinerary -->
-            <div id="advanced-graphs-2" class="flashcard hidden" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="card-title">
-                            Reconstruct Itinerary
-                            <span class="difficulty medium">Medium</span>
-                        </div>
-                        <div class="card-content">
-                            <p>Given a list of airline tickets represented by pairs of departure and arrival airports [from, to], reconstruct the itinerary in order. All of the tickets belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.</p>
-                            <p>If there are multiple valid itineraries, you should return the itinerary that has the smallest lexical order when read as a single string.</p>
-                        </div>
-                        <div class="flip-indicator">Click to flip</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="card-title">Reconstruct Itinerary - Solution</div>
-                        <div class="solution-tabs">
-                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
-                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
-                        </div>
-                        
-                        <div id="one-liner-tab" class="tab-content active">
-                            <div class="one-liner">
-                                <h3>One-liner:</h3>
-                                <p>Use DFS + min-heap to build lexicographically smallest itinerary.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="three-liner-tab" class="tab-content">
-                            <div class="three-liner">
-                                <h3>3-liner for kids:</h3>
-                                <p>We treat each airport as a point.<br>
-                                We travel using the smallest possible word (alphabetically).<br>
-                                When all tickets are used, that's our path.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="mnemonic-tab" class="tab-content">
-                            <div class="mnemonic">
-                                <h3>Mnemonics:</h3>
-                                <ul>
-                                    <li>"Build min-heap graph" → graph[frm].append(to); sort tickets</li>
-                                    <li>"DFS visit" → while graph[airport]: dfs(next_dest)</li>
-                                    <li>"Build itinerary" → res.appendleft(airport)</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div id="code-tab" class="tab-content">
-                            <div class="code-block">
-                                <code>
-def findItinerary(tickets):
-    adj = defaultdict(list)
-    for src, dst in sorted(tickets)[::-1]:
-        adj[src].append(dst)
-        
-    stack = ["JFK"]
-    res = []
-    
-    while stack:
-        curr = stack[-1]
-        if not adj[curr]:
-            res.append(stack.pop())
-        else:
-            stack.append(adj[curr].pop())
-            
-    return res[::-1]
-                                </code>
-                            </div>
-                        </div>
-                        
-                        <div class="flip-indicator">Click to flip back</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Min Cost to Connect All Points -->
-            <div id="advanced-graphs-3" class="flashcard hidden" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="card-title">
-                            Min Cost to Connect All Points
-                            <span class="difficulty medium">Medium</span>
-                        </div>
-                        <div class="card-content">
-                            <p>You are given an array points representing integer coordinates of some points on a 2D-plane, where points[i] = [xi, yi].</p>
-                            <p>The cost of connecting two points [xi, yi] and [xj, yj] is the manhattan distance between them: |xi - xj| + |yi - yj|.</p>
-                            <p>Return the minimum cost to make all points connected.</p>
-                        </div>
-                        <div class="flip-indicator">Click to flip</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="card-title">Min Cost to Connect All Points - Solution</div>
-                        <div class="solution-tabs">
-                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
-                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
-                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
-                        </div>
-                        
-                        <div id="one-liner-tab" class="tab-content active">
-                            <div class="one-liner">
-                                <h3>One-liner:</h3>
-                                <p>Use Prim's algorithm (MST) with min-heap for Manhattan distances.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="three-liner-tab" class="tab-content">
-                            <div class="three-liner">
-                                <h3>3-liner for kids:</h3>
-                                <p>We connect all dots with the least total cost.<br>
-                                We always choose the shortest connection that's not yet used.<br>
-                                When all points are connected, we stop.</p>
-                            </div>
-                        </div>
-                        
-                        <div id="mnemonic-tab" class="tab-content">
-                            <div class="mnemonic">
-                                <h3>Mnemonics:</h3>
-                                <ul>
-                                    <li>"Heap init" → heap = [(0, 0)] (cost, node)</li>
-                                    <li>"Track visited" → if node not in visited: add to cost</li>
-                                    <li>"Push neighbors" → for every next_point: heappush with distance</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div id="code-tab" class="tab-content">
-                            <div class="code-block">
-                                <code>
-def minCostConnectPoints(points):
-    n, node = len(points), 0
-    dist = [100000000] * n
-    visit = [False] * n
-    edges, res = 0, 0
-
-    while edges < n - 1:
-        visit[node] = True
-        nextNode = -1
-        for i in range(n):
-            if visit[i]:
-                continue
-            curDist = (abs(points[i][0] - points[node][0]) + 
-                      abs(points[i][1] - points[node][1]))
-            dist[i] = min(dist[i], curDist)
-            if nextNode == -1 or dist[i] < dist[nextNode]:
-                nextNode = i
-                
-        res += dist[nextNode]
-        node = nextNode
-        edges += 1
-
-    return res
-                                </code>
-                            </div>
-                        </div>
-                        
-                        <div class="flip-indicator">Click to flip back</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- All other problems would be added similarly -->
-            
+        <div class="flashcard-container" id="flashcard-container">
+            <!-- The cards will be added dynamically by JavaScript -->
         </div>
     </div>
     
@@ -1242,10 +474,59 @@ def minCostConnectPoints(points):
     </footer>
     
     <script>
+        // Define all problems for each topic
+        const problemsByTopic = {
+            'arrays-hashing': [
+                {
+                    id: 'arrays-hashing-1',
+                    title: 'Contains Duplicate',
+                    difficulty: 'easy',
+                    content: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
+                    oneLiner: 'Use a set to check if any element repeats.',
+                    threeLiner: 'We go through each number.<br>We keep a list of ones we\'ve already seen.<br>If a number shows up again, we know it\'s a duplicate.',
+                    mnemonics: [
+                        '"Seen before?" → if num in seen: return True',
+                        '"Add new" → seen.add(num)',
+                        '"End clean" → return False'
+                    ],
+                    code: `def hasDuplicate(nums):
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False`
+                },
+                // Additional problems from arrays-hashing would be defined here
+            ],
+            'two-pointers': [
+                // Problems from two-pointers would be defined here
+            ],
+            'sliding-window': [
+                // Problems from sliding-window would be defined here
+            ],
+            'binary-search': [
+                // Problems from binary-search would be defined here
+            ],
+            'stack': [
+                // Problems from stack would be defined here
+            ],
+            'linked-list': [
+                // Problems from linked-list would be defined here
+            ],
+            'trees': [
+                // Problems from trees would be defined here
+            ],
+            // Add all other topics here
+        };
+
         // Show home page or topic page
         function showHomePage() {
             document.getElementById('home-page').classList.remove('hidden');
             document.getElementById('topic-page').classList.add('hidden');
+            
+            // Reset any topic-specific state
+            currentProblemIndex = 0;
         }
         
         function showTopic(topicId) {
@@ -1275,53 +556,130 @@ def minCostConnectPoints(points):
             };
             
             document.getElementById('current-topic-title').textContent = topicTitles[topicId];
+            currentTopicId = topicId;
             
-            // Hide all problem cards
+            // Create or display flashcards for this topic
+            createFlashcards(topicId);
+            
+            // Show the first problem
+            showProblem(0);
+        }
+        
+        // Create flashcards for a topic
+        function createFlashcards(topicId) {
+            const container = document.getElementById('flashcard-container');
+            
+            // Clear existing flashcards
+            container.innerHTML = '';
+            
+            // Get the data for this topic
+            const problems = problemsByTopic[topicId] || [];
+            
+            // Update the problem counter
+            document.getElementById('total-problems').textContent = problems.length;
+            
+            // Create flashcard for each problem
+            problems.forEach((problem, index) => {
+                const card = document.createElement('div');
+                card.id = `${topicId}-${index + 1}`;
+                card.className = 'flashcard hidden';
+                card.onclick = function() { flipCard(this); };
+                
+                // Create the card HTML
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-title">
+                                ${problem.title}
+                                <span class="difficulty ${problem.difficulty}">${problem.difficulty}</span>
+                            </div>
+                            <div class="card-content">
+                                <p>${problem.content}</p>
+                            </div>
+                            <div class="flip-indicator">Click to flip</div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-title">${problem.title} - Solution</div>
+                            <div class="solution-tabs">
+                                <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab-${index}')">One-liner</button>
+                                <button class="tab-btn" onclick="showTab(this, 'three-liner-tab-${index}')">3-liner</button>
+                                <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab-${index}')">Mnemonic</button>
+                                <button class="tab-btn" onclick="showTab(this, 'code-tab-${index}')">Code</button>
+                            </div>
+                            
+                            <div id="one-liner-tab-${index}" class="tab-content active">
+                                <div class="one-liner">
+                                    <h3>One-liner:</h3>
+                                    <p>${problem.oneLiner}</p>
+                                </div>
+                            </div>
+                            
+                            <div id="three-liner-tab-${index}" class="tab-content">
+                                <div class="three-liner">
+                                    <h3>3-liner for kids:</h3>
+                                    <p>${problem.threeLiner}</p>
+                                </div>
+                            </div>
+                            
+                            <div id="mnemonic-tab-${index}" class="tab-content">
+                                <div class="mnemonic">
+                                    <h3>Mnemonics:</h3>
+                                    <ul>
+                                        ${problem.mnemonics.map(m => `<li>${m}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div id="code-tab-${index}" class="tab-content">
+                                <div class="code-block">
+                                    <code>${problem.code}</code>
+                                </div>
+                            </div>
+                            
+                            <div class="flip-indicator">Click to flip back</div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        // Show a specific problem
+        function showProblem(index) {
+            if (!currentTopicId) return;
+            
+            const problems = problemsByTopic[currentTopicId] || [];
+            if (index < 0 || index >= problems.length) return;
+            
+            // Hide all problems
             const allProblems = document.querySelectorAll('.flashcard');
             allProblems.forEach(problem => {
                 problem.classList.add('hidden');
             });
             
-            // Show only the problems for this topic
-            const topicProblems = document.querySelectorAll(`[id^="${topicId}"]`);
-            if (topicProblems.length > 0) {
-                topicProblems[0].classList.remove('hidden');
-                
-                // Update problem counter
-                document.getElementById('current-problem').textContent = 1;
-                document.getElementById('total-problems').textContent = topicProblems.length;
-                
-                // Enable/disable navigation buttons
-                document.getElementById('prev-btn').disabled = true;
-                document.getElementById('next-btn').disabled = topicProblems.length <= 1;
+            // Show the selected problem
+            const problemId = `${currentTopicId}-${index + 1}`;
+            const problem = document.getElementById(problemId);
+            if (problem) {
+                problem.classList.remove('hidden');
+                problem.classList.remove('flipped'); // Reset card state
             }
+            
+            // Update the problem counter
+            document.getElementById('current-problem').textContent = index + 1;
+            
+            // Update button states
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').disabled = index === problems.length - 1;
+            
+            // Update current index
+            currentProblemIndex = index;
         }
         
         // Navigate between problems
-        let currentProblemIndex = 0;
-        
         function navigateProblem(direction) {
-            const topicId = document.getElementById('current-topic-title').textContent.toLowerCase().replace(/[^a-z0-9]/g, '-');
-            const topicProblems = document.querySelectorAll(`[id^="${topicId}"]`);
-            
-            // Hide current problem
-            topicProblems[currentProblemIndex].classList.add('hidden');
-            
-            // Update index
-            currentProblemIndex += direction;
-            
-            // Show new problem
-            topicProblems[currentProblemIndex].classList.remove('hidden');
-            
-            // Update problem counter
-            document.getElementById('current-problem').textContent = currentProblemIndex + 1;
-            
-            // Update button state
-            document.getElementById('prev-btn').disabled = currentProblemIndex === 0;
-            document.getElementById('next-btn').disabled = currentProblemIndex === topicProblems.length - 1;
-            
-            // Reset any flipped cards
-            topicProblems[currentProblemIndex].classList.remove('flipped');
+            showProblem(currentProblemIndex + direction);
         }
         
         // Flip card functionality
@@ -1346,12 +704,16 @@ def minCostConnectPoints(points):
             card.querySelector(`#${tabId}`).classList.add('active');
         }
         
-        // Initialize
+        // Global variables to track state
+        let currentTopicId = null;
+        let currentProblemIndex = 0;
+
+        // Initialize all topics with problem data
         document.addEventListener('DOMContentLoaded', function() {
-            // Add more algorithm flashcards below for other topics
+            // Add problems data for all topics
             
-            // Arrays and Hashing problems
-            const arraysProblems = [
+            // Arrays and Hashing
+            problemsByTopic['arrays-hashing'] = [
                 {
                     id: 'arrays-hashing-1',
                     title: 'Contains Duplicate',
@@ -1364,7 +726,7 @@ def minCostConnectPoints(points):
                         '"Add new" → seen.add(num)',
                         '"End clean" → return False'
                     ],
-                    code: `def containsDuplicate(nums):
+                    code: `def hasDuplicate(nums):
     seen = set()
     for num in nums:
         if num in seen:
@@ -1376,211 +738,1863 @@ def minCostConnectPoints(points):
                     id: 'arrays-hashing-2',
                     title: 'Valid Anagram',
                     difficulty: 'easy',
-                    content: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of a different word, using all the original letters exactly once.',
-                    oneLiner: 'Compare character counts in both strings.',
-                    threeLiner: 'Count how many times each letter appears in both strings.<br>If every letter occurs the same number of times, it\'s an anagram.<br>If not, it\'s not an anagram.',
+                    content: 'Given two strings s and t, return true if the two strings are anagrams of each other, otherwise return false. An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.',
+                    oneLiner: 'Use counters (hashmaps) to compare character frequencies.',
+                    threeLiner: 'We count the letters in both words.<br>If every letter shows up the same number of times, it\'s an anagram.<br>Otherwise, it\'s not.',
                     mnemonics: [
-                        '"Count chars" → Counter(s) == Counter(t)',
-                        '"Length check" → if len(s) != len(t): return False',
-                        '"Count compare" → For each char, compare counts'
+                        '"Count both" → Counter(s) == Counter(t)',
+                        '"Compare maps" → for key in counts: compare values',
+                        '"Return result" → return True/False'
                     ],
                     code: `def isAnagram(s, t):
     if len(s) != len(t):
         return False
-    
-    count_s, count_t = {}, {}
-    
+
+    count = [0] * 26
     for i in range(len(s)):
-        count_s[s[i]] = count_s.get(s[i], 0) + 1
-        count_t[t[i]] = count_t.get(t[i], 0) + 1
+        count[ord(s[i]) - ord('a')] += 1
+        count[ord(t[i]) - ord('a')] -= 1
+
+    for val in count:
+        if val != 0:
+            return False
+    return True`
+                },
+                {
+                    id: 'arrays-hashing-3',
+                    title: 'Two Sum',
+                    difficulty: 'easy',
+                    content: 'Given an array of integers nums and an integer target, return the indices i and j such that nums[i] + nums[j] == target and i != j. You may assume that every input has exactly one pair of indices i and j that satisfy the condition.',
+                    oneLiner: 'Store each number\'s complement in a hashmap as we loop.',
+                    threeLiner: 'We look for two numbers that add to a target.<br>We remember each number we see and what we need to reach the target.<br>If we find the right pair, we return their positions.',
+                    mnemonics: [
+                        '"Check map" → if target - num in seen: return [i, seen[target - num]]',
+                        '"Store index" → seen[num] = i',
+                        '"Loop through" → for i, num in enumerate(nums):'
+                    ],
+                    code: `def twoSum(nums, target):
+    indices = {}  # val -> index
+
+    for i, n in enumerate(nums):
+        diff = target - n
+        if diff in indices:
+            return [indices[diff], i]
+        indices[n] = i
     
-    return count_s == count_t`
+    return []`
+                },
+                {
+                    id: 'arrays-hashing-4',
+                    title: 'Group Anagrams',
+                    difficulty: 'medium',
+                    content: 'Given an array of strings strs, group all anagrams together into sublists. You may return the output in any order. An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.',
+                    oneLiner: 'Group words using sorted letters as a key in a hashmap.',
+                    threeLiner: 'We sort the letters in each word.<br>Words with the same letters go into the same group.<br>We collect all the groups.',
+                    mnemonics: [
+                        '"Sort word" → key = \''.join(sorted(word))',
+                        '"Group by key" → anagram_map[key].append(word)',
+                        '"Return values" → return anagram_map.values()'
+                    ],
+                    code: `def groupAnagrams(strs):
+    res = defaultdict(list)
+    for s in strs:
+        count = [0] * 26
+        for c in s:
+            count[ord(c) - ord('a')] += 1
+        res[tuple(count)].append(s)
+    return list(res.values())`
+                },
+                {
+                    id: 'arrays-hashing-5',
+                    title: 'Top K Frequent Elements',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums and an integer k, return the k most frequent elements within the array. The test cases are generated such that the answer is always unique. You may return the output in any order.',
+                    oneLiner: 'Use a counter and a heap to get the top k items.',
+                    threeLiner: 'We count how many times each number shows up.<br>We keep the k most common ones.<br>Then we return them.',
+                    mnemonics: [
+                        '"Count frequency" → count = Counter(nums)',
+                        '"Heap select top" → heapq.nlargest(k, count.keys(), key=count.get)',
+                        '"Return result" → return result'
+                    ],
+                    code: `def topKFrequent(nums, k):
+    count = {}
+    freq = [[] for i in range(len(nums) + 1)]
+
+    for num in nums:
+        count[num] = 1 + count.get(num, 0)
+    for num, cnt in count.items():
+        freq[cnt].append(num)
+    
+    res = []
+    for i in range(len(freq) - 1, 0, -1):
+        for num in freq[i]:
+            res.append(num)
+            if len(res) == k:
+                return res`
+                },
+                {
+                    id: 'arrays-hashing-6',
+                    title: 'Encode and Decode Strings',
+                    difficulty: 'medium',
+                    content: 'Design an algorithm to encode a list of strings to a single string. The encoded string is then decoded back to the original list of strings. Please implement encode and decode.',
+                    oneLiner: 'Use a length prefix or delimiter to encode, then decode safely.',
+                    threeLiner: 'We turn each word into a number + word combo.<br>That way we can separate them later.<br>We read the length to split them back correctly.',
+                    mnemonics: [
+                        '"Encode with length" → s = str(len(word)) + "#" + word',
+                        '"Split by count" → length = int(s[:i]), then s[i+1:i+1+length]',
+                        '"Loop until done" → while i < len(s): decode'
+                    ],
+                    code: `def encode(strs):
+    res = ""
+    for s in strs:
+        res += str(len(s)) + "#" + s
+    return res
+
+def decode(s):
+    res = []
+    i = 0
+    
+    while i < len(s):
+        j = i
+        while s[j] != '#':
+            j += 1
+        length = int(s[i:j])
+        i = j + 1
+        j = i + length
+        res.append(s[i:j])
+        i = j
+        
+    return res`
+                },
+                {
+                    id: 'arrays-hashing-7',
+                    title: 'Product of Array Except Self',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums, return an array output where output[i] is the product of all the elements of nums except nums[i]. You must write an algorithm without using the division operation and in O(n) time.',
+                    oneLiner: 'Use prefix and suffix multiplications without division.',
+                    threeLiner: 'We find how much every number would be if we multiply all other numbers.<br>First, we go left to right.<br>Then, we go right to left and finish the math.',
+                    mnemonics: [
+                        '"Left pass" → for i in range(n): res[i] *= prefix',
+                        '"Right pass" → for i in reversed(range(n)): res[i] *= suffix',
+                        '"Update prefixes" → prefix *= nums[i], suffix *= nums[i]'
+                    ],
+                    code: `def productExceptSelf(nums):
+    res = [1] * (len(nums))
+
+    prefix = 1
+    for i in range(len(nums)):
+        res[i] = prefix
+        prefix *= nums[i]
+    postfix = 1
+    for i in range(len(nums) - 1, -1, -1):
+        res[i] *= postfix
+        postfix *= nums[i]
+    return res`
+                },
+                {
+                    id: 'arrays-hashing-8',
+                    title: 'Valid Sudoku',
+                    difficulty: 'medium',
+                    content: 'Determine if a 9 x 9 Sudoku board is valid. A valid Sudoku board must follow these rules: Each row, each column, and each of the nine 3 x 3 sub-boxes must contain the digits 1-9 without repetition.',
+                    oneLiner: 'Use sets to check each row, column, and 3x3 box.',
+                    threeLiner: 'Each row, column, and box must have unique numbers.<br>We go through the board and record what we see.<br>If anything repeats in the same row, column, or box, it\'s not valid.',
+                    mnemonics: [
+                        '"Check each cell" → for i in range(9): for j in range(9):',
+                        '"Use 3 keys" → row[i], col[j], box[i//3, j//3]',
+                        '"Add or return False" → if val in set: return False else: add'
+                    ],
+                    code: `def isValidSudoku(board):
+    for row in range(9):
+        seen = set()
+        for i in range(9):
+            if board[row][i] == ".": 
+                continue
+            if board[row][i] in seen:
+                return False
+            seen.add(board[row][i])
+    
+    for col in range(9):
+        seen = set()
+        for i in range(9):
+            if board[i][col] == ".":
+                continue
+            if board[i][col] in seen:
+                return False
+            seen.add(board[i][col])
+        
+    for square in range(9):
+        seen = set()
+        for i in range(3):
+            for j in range(3):
+                row = (square//3) * 3 + i
+                col = (square % 3) * 3 + j
+                if board[row][col] == ".":
+                    continue
+                if board[row][col] in seen:
+                    return False
+                seen.add(board[row][col])
+    return True`
+                },
+                {
+                    id: 'arrays-hashing-9',
+                    title: 'Longest Consecutive Sequence',
+                    difficulty: 'medium',
+                    content: 'Given an array of integers nums, return the length of the longest consecutive sequence of elements that can be formed. A consecutive sequence is a sequence of elements in which each element is exactly 1 greater than the previous element.',
+                    oneLiner: 'Use a set and expand sequences from the smallest number.',
+                    threeLiner: 'We put all the numbers in a quick lookup set.<br>Then we start from numbers that are the beginning of a sequence.<br>We count how long each chain goes.',
+                    mnemonics: [
+                        '"Add to set" → num_set = set(nums)',
+                        '"Start from beginning" → if num - 1 not in num_set:',
+                        '"Expand right" → while num + streak in num_set: streak += 1'
+                    ],
+                    code: `def longestConsecutive(nums):
+    numSet = set(nums)
+    longest = 0
+
+    for num in numSet:
+        if (num - 1) not in numSet:
+            length = 1
+            while (num + length) in numSet:
+                length += 1
+            longest = max(length, longest)
+    return longest`
                 }
             ];
             
             // Two Pointers problems
-            const twoPointersProblems = [
+            problemsByTopic['two-pointers'] = [
                 {
                     id: 'two-pointers-1',
                     title: 'Valid Palindrome',
                     difficulty: 'easy',
-                    content: 'Given a string s, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases. A palindrome reads the same backward as forward.',
-                    oneLiner: 'Use two pointers from both ends, comparing characters after filtering.',
-                    threeLiner: 'Ignore characters that aren\'t letters or numbers.<br>Check if the first letter matches the last letter, then move inward.<br>If they all match, it\'s a palindrome!',
+                    content: 'Check if a given string is a palindrome, considering only alphanumeric characters and ignoring cases.',
+                    oneLiner: 'Use two pointers from both ends, skipping non-alphanumerics and comparing characters.',
+                    threeLiner: 'We look at one letter from the front and one from the back.<br>We skip anything that\'s not a letter or number.<br>If everything matches going inward, it\'s a palindrome!',
                     mnemonics: [
-                        '"Skip non-alphanumeric" → while not char.isalnum()',
-                        '"Compare lowercase" → if s[l].lower() != s[r].lower(): return False',
-                        '"Move inward" → l++, r--'
+                        '"Skip non-letters" → if not s[l].isalnum(): l += 1',
+                        '"Lowercase compare" → if s[l].lower() != s[r].lower(): return False',
+                        '"Move pointers" → l += 1, r -= 1'
                     ],
                     code: `def isPalindrome(s):
-    l, r = 0, len(s) - 1
+    left, right = 0, len(s) - 1
     
-    while l < r:
-        while l < r and not s[l].isalnum():
-            l += 1
-        while l < r and not s[r].isalnum():
-            r -= 1
+    while left < right:
+        while left < right and not s[left].isalnum():
+            left += 1
+        while left < right and not s[right].isalnum():
+            right -= 1
             
-        if s[l].lower() != s[r].lower():
+        if s[left].lower() != s[right].lower():
             return False
-            
-        l += 1
-        r -= 1
         
+        left += 1
+        right -= 1
+    
     return True`
                 },
                 {
                     id: 'two-pointers-2',
-                    title: 'Container With Most Water',
+                    title: 'Two Sum II - Input Array Is Sorted',
                     difficulty: 'medium',
-                    content: 'Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0). Find two lines, which, together with the x-axis, forms a container that contains the most water.',
-                    oneLiner: 'Use two pointers from both ends to maximize area.',
-                    threeLiner: 'Start with the widest container (left and right ends).<br>Calculate area as width × minimum height.<br>Move the pointer at the shorter wall inward.',
+                    content: 'Find two numbers in a sorted array that add up to a target.',
+                    oneLiner: 'Use two pointers from both ends and move based on sum.',
+                    threeLiner: 'We start from both ends of the list.<br>If the sum is too big, move the right one left.<br>If too small, move the left one right — until it fits!',
                     mnemonics: [
-                        '"Area formula" → area = min(height[l], height[r]) * (r - l)',
-                        '"Move shorter wall" → if height[l] < height[r]: l++ else r--',
-                        '"Track max" → max_area = max(max_area, area)'
+                        '"Check sum" → if nums[l] + nums[r] == target: return',
+                        '"Too big?" → if sum > target: r -= 1',
+                        '"Too small?" → if sum < target: l += 1'
                     ],
-                    code: `def maxArea(height):
-    l, r = 0, len(height) - 1
-    max_area = 0
+                    code: `def twoSum(numbers, target):
+    left, right = 0, len(numbers) - 1
     
-    while l < r:
-        area = min(height[l], height[r]) * (r - l)
-        max_area = max(max_area, area)
+    while left < right:
+        curr_sum = numbers[left] + numbers[right]
         
-        if height[l] < height[r]:
-            l += 1
+        if curr_sum == target:
+            return [left + 1, right + 1]  # 1-based index
+        
+        if curr_sum < target:
+            left += 1
         else:
-            r -= 1
-            
-    return max_area`
-                }
-            ];
-            
-            // 1D Dynamic Programming problems
-            const dp1DProblems = [
-                {
-                    id: '1d-dp-1',
-                    title: 'Climbing Stairs',
-                    difficulty: 'easy',
-                    content: 'You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?',
-                    oneLiner: 'Use Fibonacci-style bottom-up DP to count steps.',
-                    threeLiner: 'You can climb 1 or 2 stairs at a time.<br>Count how many ways to get to each stair.<br>It\'s like adding ways from two previous steps.',
-                    mnemonics: [
-                        '"Fibonacci step" → first, second = second, first + second',
-                        '"Start base" → first, second = 1, 2',
-                        '"Return top" → return second'
-                    ],
-                    code: `def climbStairs(n):
-    if n <= 2:
-        return n
-    first, second = 1, 2
-    for _ in range(3, n + 1):
-        first, second = second, first + second
-    return second`
+            right -= 1
+    
+    return []`
                 },
                 {
-                    id: '1d-dp-2',
-                    title: 'House Robber',
+                    id: 'two-pointers-3',
+                    title: '3Sum',
                     difficulty: 'medium',
-                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected, and they will automatically contact the police if two adjacent houses were broken into on the same night. Given an array of non-negative integers representing the amount of money of each house, determine the maximum amount of money you can rob tonight without alerting the police.',
-                    oneLiner: 'Use DP to track max loot by either robbing or skipping each house.',
-                    threeLiner: 'Can\'t rob two houses in a row.<br>Each time, choose: rob this or skip it.<br>Keep track of best steal.',
+                    content: 'Find all unique triplets in an array that sum to zero.',
+                    oneLiner: 'Sort the array and use two pointers within a loop.',
+                    threeLiner: 'First sort the numbers.<br>For each number, find pairs that sum to its negative.<br>Use two pointers to find all pairs efficiently.',
                     mnemonics: [
-                        '"Rob or skip" → first, second = second, max(second, first + num)',
-                        '"Track rolling max" → first, second = 0, 0',
-                        '"Final loot" → return second'
+                        '"Sort first" → nums.sort()',
+                        '"Skip duplicates" → if i > 0 and nums[i] == nums[i-1]: continue',
+                        '"Two pointers" → left, right = i+1, len(nums)-1'
                     ],
-                    code: `def rob(nums):
-    if not nums:
+                    code: `def threeSum(nums):
+    nums.sort()
+    res = []
+    
+    for i in range(len(nums) - 2):
+        if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates
+            continue
+        
+        left, right = i + 1, len(nums) - 1
+        
+        while left < right:
+            total = nums[i] + nums[left] + nums[right]
+            
+            if total == 0:
+                res.append([nums[i], nums[left], nums[right]])
+                
+                while left < right and nums[left] == nums[left + 1]:  # Skip duplicates
+                    left += 1
+                while left < right and nums[right] == nums[right - 1]:  # Skip duplicates
+                    right -= 1
+                
+                left += 1
+                right -= 1
+                
+            elif total < 0:
+                left += 1
+            else:
+                right -= 1
+                
+    return res`
+                },
+                {
+                    id: 'two-pointers-4',
+                    title: 'Container With Most Water',
+                    difficulty: 'medium',
+                    content: 'Find two vertical lines that form a container with the maximum water storage.',
+                    oneLiner: 'Use two pointers from ends and move the one with shorter height.',
+                    threeLiner: 'We look at the widest container first.<br>We always keep the bigger height and try to make width smaller.<br>We keep track of the best result as we move inward.',
+                    mnemonics: [
+                        '"Start ends" → l, r = 0, len(height) - 1',
+                        '"Calculate area" → area = min(height[l], height[r]) * (r - l)',
+                        '"Move pointer" → if height[l] < height[r]: l += 1 else: r -= 1'
+                    ],
+                    code: `def maxArea(height):
+    left, right = 0, len(height) - 1
+    max_water = 0
+    
+    while left < right:
+        max_water = max(max_water, (right - left) * min(height[left], height[right]))
+        
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    
+    return max_water`
+                },
+                {
+                    id: 'two-pointers-5',
+                    title: 'Trapping Rain Water',
+                    difficulty: 'hard',
+                    content: 'Calculate the amount of rainwater that can be trapped between the bars.',
+                    oneLiner: 'Use two pointers with left/right max to accumulate water at each position.',
+                    threeLiner: 'We look at the left and right sides of each block.<br>We keep track of the highest walls on both ends.<br>Water is trapped if the block is lower than both sides.',
+                    mnemonics: [
+                        '"Track maxes" → left_max = max(left_max, height[l])',
+                        '"Trap water" → if height[l] < height[r]: water += left_max - height[l]',
+                        '"Move inward" → l += 1 or r -= 1 depending on height'
+                    ],
+                    code: `def trap(height):
+    if not height:
         return 0
-    if len(nums) == 1:
-        return nums[0]
-    first, second = 0, 0
-    for num in nums:
-        first, second = second, max(second, first + num)
-    return second`
+    
+    left, right = 0, len(height) - 1
+    left_max, right_max = 0, 0
+    trapped_water = 0
+    
+    while left < right:
+        if height[left] < height[right]:
+            if height[left] >= left_max:
+                left_max = height[left]
+            else:
+                trapped_water += left_max - height[left]
+            left += 1
+        else:
+            if height[right] >= right_max:
+                right_max = height[right]
+            else:
+                trapped_water += right_max - height[right]
+            right -= 1
+            
+    return trapped_water`
                 }
             ];
+            ];
             
-            // Function to create and add problem cards dynamically
-            function createProblemCards(problems, topicId) {
-                const container = document.querySelector('.flashcard-container');
-                
-                problems.forEach((problem, index) => {
-                    // Create card element
-                    const card = document.createElement('div');
-                    card.id = problem.id;
-                    card.className = 'flashcard hidden';
-                    card.onclick = function() { flipCard(this); };
-                    
-                    // Card HTML structure
-                    card.innerHTML = `
-                        <div class="card-inner">
-                            <div class="card-front">
-                                <div class="card-title">
-                                    ${problem.title}
-                                    <span class="difficulty ${problem.difficulty}">${problem.difficulty}</span>
-                                </div>
-                                <div class="card-content">
-                                    <p>${problem.content}</p>
-                                </div>
-                                <div class="flip-indicator">Click to flip</div>
-                            </div>
-                            <div class="card-back">
-                                <div class="card-title">${problem.title} - Solution</div>
-                                <div class="solution-tabs">
-                                    <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab-${index}')">One-liner</button>
-                                    <button class="tab-btn" onclick="showTab(this, 'three-liner-tab-${index}')">3-liner</button>
-                                    <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab-${index}')">Mnemonic</button>
-                                    <button class="tab-btn" onclick="showTab(this, 'code-tab-${index}')">Code</button>
-                                </div>
-                                
-                                <div id="one-liner-tab-${index}" class="tab-content active">
-                                    <div class="one-liner">
-                                        <h3>One-liner:</h3>
-                                        <p>${problem.oneLiner}</p>
-                                    </div>
-                                </div>
-                                
-                                <div id="three-liner-tab-${index}" class="tab-content">
-                                    <div class="three-liner">
-                                        <h3>3-liner for kids:</h3>
-                                        <p>${problem.threeLiner}</p>
-                                    </div>
-                                </div>
-                                
-                                <div id="mnemonic-tab-${index}" class="tab-content">
-                                    <div class="mnemonic">
-                                        <h3>Mnemonics:</h3>
-                                        <ul>
-                                            ${problem.mnemonics.map(m => `<li>${m}</li>`).join('')}
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                                <div id="code-tab-${index}" class="tab-content">
-                                    <div class="code-block">
-                                        <code>${problem.code}</code>
-                                    </div>
-                                </div>
-                                
-                                <div class="flip-indicator">Click to flip back</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Add card to container
-                    container.appendChild(card);
-                });
-            }
+            // Add all other categories
             
-            // Add the problem cards
-            createProblemCards(arraysProblems, 'arrays-hashing');
-            createProblemCards(twoPointersProblems, 'two-pointers');
-            createProblemCards(dp1DProblems, '1d-dp');
+            // Sliding Window
+            problemsByTopic['sliding-window'] = [
+                {
+                    id: 'sliding-window-1',
+                    title: 'Best Time to Buy and Sell Stock',
+                    difficulty: 'easy',
+                    content: 'Given an array where prices[i] is the price of a given stock on day i, find the maximum profit.',
+                    oneLiner: 'Track the minimum price so far and compute profit at each step.',
+                    threeLiner: 'We watch the lowest price we\'ve seen.<br>Then we check how much we\'d earn if we sold today.<br>We remember the best profit we ever found.',
+                    mnemonics: [
+                        '"Track min" → min_price = min(min_price, price)',
+                        '"Check profit" → profit = price - min_price',
+                        '"Update best" → max_profit = max(max_profit, profit)'
+                    ],
+                    code: `def maxProfit(prices):
+    min_price = float('inf')
+    max_profit = 0
+    
+    for price in prices:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    
+    return max_profit`
+                }
+                // Additional sliding window problems would be added here
+            ];
+            
+            // Binary Search
+            problemsByTopic['binary-search'] = [
+                {
+                    id: 'binary-search-1',
+                    title: 'Binary Search',
+                    difficulty: 'easy',
+                    content: 'Given a sorted array, return the index of target. If not found, return -1.',
+                    oneLiner: 'Use two pointers to repeatedly cut the search range in half.',
+                    threeLiner: 'We look in the middle of the list.<br>If it\'s not the number, we search only the left or right part.<br>We do this again and again until we find it or run out.',
+                    mnemonics: [
+                        '"Set range" → low, high = 0, len(nums) - 1',
+                        '"Check mid" → mid = (low + high) // 2',
+                        '"Narrow search" → if nums[mid] < target: low = mid + 1 else: high = mid - 1'
+                    ],
+                    code: `def binarySearch(nums, target):
+    left, right = 0, len(nums) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        elif nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+            
+    return -1`
+                }
+                // Additional binary search problems would be added here
+            ];
+            
+            // Dynamic example to test the app functionality
+            problemsByTopic['advanced-graphs'] = [
+                {
+                    id: 'advanced-graphs-1',
+                    title: 'Network Delay Time',
+                    difficulty: 'medium',
+                    content: 'You are given a network of n nodes, labeled from 1 to n. You are also given times, a list of travel times as directed edges where times[i] = (ui, vi, wi) means node ui to node vi takes wi time. Return the minimum time it takes for all the n nodes to receive the signal, or -1 if it is impossible.',
+                    oneLiner: 'Use Dijkstra\'s algorithm to find shortest time to all nodes.',
+                    threeLiner: 'We send a signal from one point.<br>We figure out how fast it can reach every other point.<br>The longest of those times is our answer.',
+                    mnemonics: [
+                        '"Build graph" → graph[u].append((v, w))',
+                        '"Min-heap Dijkstra" → heappop(heap) gives node with smallest time',
+                        '"Update time" → if new_time < dist[v]: update and push'
+                    ],
+                    code: `def networkDelayTime(times, n, k):
+    edges = collections.defaultdict(list)
+    for u, v, w in times:
+        edges[u].append((v, w))
+
+    minHeap = [(0, k)]
+    visit = set()
+    t = 0
+    while minHeap:
+        w1, n1 = heapq.heappop(minHeap)
+        if n1 in visit:
+            continue
+        visit.add(n1)
+        t = w1
+
+        for n2, w2 in edges[n1]:
+            if n2 not in visit:
+                heapq.heappush(minHeap, (w1 + w2, n2))
+    return t if len(visit) == n else -1`
+                }
+            ];
         });
     </script>
 </body>
 </html>
+</body>
+</html>
+        // Define all problems for each topic
+        const problems = {
+            'arrays-hashing': [
+                {
+                    id: 'arrays-hashing-1',
+                    title: 'Contains Duplicate',
+                    difficulty: 'easy',
+                    content: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
+                    oneLiner: 'Use a set to check if any element repeats.',
+                    threeLiner: 'We go through each number.<br>We keep a list of ones we\'ve already seen.<br>If a number shows up again, we know it\'s a duplicate.',
+                    mnemonics: [
+                        '"Seen before?" → if num in seen: return True',
+                        '"Add new" → seen.add(num)',
+                        '"End clean" → return False'
+                    ],
+            'linked-list': [
+                {
+                    id: 'linked-list-1',
+                    title: 'Reverse Linked List',
+                    difficulty: 'easy',
+                    content: 'Reverse a singly linked list.',
+                    oneLiner: 'Iteratively reverse pointers one node at a time.',
+                    threeLiner: 'We go through the list one by one.<br>We turn each pointer backward instead of forward.<br>When we finish, the list is flipped!',
+                    mnemonics: [
+                        '"Track previous" → prev = None',
+                        '"Flip pointer" → curr.next = prev',
+                        '"Move forward" → prev, curr = curr, curr.next'
+                    ],
+                    code: `def reverseList(head):
+    prev, curr = None, head
+    
+    while curr:
+        nxt = curr.next
+        curr.next = prev
+        prev = curr
+        curr = nxt
+    
+    return prev`
+                },
+                {
+                    id: 'linked-list-2',
+                    title: 'Merge Two Sorted Lists',
+                    difficulty: 'easy',
+                    content: 'Merge two sorted linked lists into one sorted list.',
+                    oneLiner: 'Use two pointers to weave nodes into a sorted list.',
+                    threeLiner: 'We compare heads of both lists.<br>We always pick the smaller one and keep going.<br>We attach leftover nodes at the end.',
+                    mnemonics: [
+                        '"Dummy node start" → dummy = ListNode()',
+                        '"Pick smaller" → if l1.val < l2.val: attach l1',
+                        '"Link remainder" → tail.next = l1 or l2'
+                    ],
+                    code: `def mergeTwoLists(l1, l2):
+    dummy = ListNode()
+    tail = dummy
+    
+    while l1 and l2:
+        if l1.val < l2.val:
+            tail.next = l1
+            l1 = l1.next
+        else:
+            tail.next = l2
+            l2 = l2.next
+        tail = tail.next
+
+    tail.next = l1 if l1 else l2
+    return dummy.next`
+                },
+                {
+                    id: 'linked-list-3',
+                    title: 'Linked List Cycle',
+                    difficulty: 'easy',
+                    content: 'Detect if a linked list has a cycle.',
+                    oneLiner: 'Use two pointers (slow and fast) to detect a loop.',
+                    threeLiner: 'One pointer moves fast, the other moves slow.<br>If they ever meet, there\'s a loop.<br>If the fast one finishes, there\'s no cycle.',
+                    mnemonics: [
+                        '"Initialize pointers" → slow, fast = head, head',
+                        '"Move fast x2" → fast = fast.next.next',
+                        '"Check meeting point" → if slow == fast: return True'
+                    ],
+                    code: `def hasCycle(head):
+    slow, fast = head, head
+
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+            
+    return False`
+                },
+                {
+                    id: 'linked-list-4',
+                    title: 'Reorder List',
+                    difficulty: 'medium',
+                    content: 'Reorder a linked list in-place as L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → ...',
+                    oneLiner: 'Split the list, reverse the second half, and merge both.',
+                    threeLiner: 'We find the middle of the list.<br>We reverse the second half.<br>Then we zig-zag merge the two parts.',
+                    mnemonics: [
+                        '"Find mid" → slow = slow.next, fast = fast.next.next',
+                        '"Reverse half" → second = reverse(middle)',
+                        '"Merge halves" → while first and second: alternate attach'
+                    ],
+                    code: `def reorderList(head):
+    if not head or not head.next:
+        return
+    
+    # Find middle
+    slow, fast = head, head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+
+    # Reverse second half
+    prev, curr = None, slow.next
+    slow.next = None  # Split list
+    while curr:
+        nxt = curr.next
+        curr.next = prev
+        prev = curr
+        curr = nxt
+
+    # Merge two halves
+    first, second = head, prev
+    while second:
+        tmp1, tmp2 = first.next, second.next
+        first.next = second
+        second.next = tmp1
+        first, second = tmp1, tmp2`
+                },
+                {
+                    id: 'linked-list-5',
+                    title: 'Remove Nth Node From End of List',
+                    difficulty: 'medium',
+                    content: 'Remove the nth node from the end of the list.',
+                    oneLiner: 'Use two pointers with n distance apart.',
+                    threeLiner: 'We move one pointer n steps ahead.<br>Then we move both together until the fast one ends.<br>The slow one is right before the node to remove.',
+                    mnemonics: [
+                        '"Advance fast" → for _ in range(n): fast = fast.next',
+                        '"Move both" → while fast.next: slow = slow.next',
+                        '"Remove node" → slow.next = slow.next.next'
+                    ],
+                    code: `def removeNthFromEnd(head, n):
+    dummy = ListNode(0, head)
+    fast, slow = dummy, dummy
+    
+    for _ in range(n + 1):
+        fast = fast.next
+    
+    while fast:
+        fast = fast.next
+        slow = slow.next
+    
+    slow.next = slow.next.next
+    return dummy.next`
+                },
+                {
+                    id: 'linked-list-6',
+                    title: 'Copy List with Random Pointer',
+                    difficulty: 'medium',
+                    content: 'Clone a linked list with a random pointer.',
+                    oneLiner: 'Interleave original and copied nodes, fix randoms, then split.',
+                    threeLiner: 'We copy each node and put it right next to the original.<br>Then we fix the random pointers.<br>Last, we split them into two separate lists.',
+                    mnemonics: [
+                        '"Clone nodes" → curr.next = Node(curr.val)',
+                        '"Fix random" → curr.next.random = curr.random.next',
+                        '"Separate lists" → original.next = clone.next; clone.next = clone.next.next'
+                    ],
+                    code: `def copyRandomList(head):
+    if not head:
+        return None
+
+    # Step 1: Create new nodes interleaved with the old nodes
+    curr = head
+    while curr:
+        nxt = curr.next
+        curr.next = Node(curr.val, nxt, None)
+        curr = nxt
+
+    # Step 2: Assign random pointers
+    curr = head
+    while curr:
+        if curr.random:
+            curr.next.random = curr.random.next
+        curr = curr.next.next
+
+    # Step 3: Separate the two lists
+    old, new = head, head.next
+    new_head = head.next
+    while old:
+        old.next = old.next.next
+        new.next = new.next.next if new.next else None
+        old, new = old.next, new.next
+    
+    return new_head`
+                },
+                {
+                    id: 'linked-list-7',
+                    title: 'Add Two Numbers',
+                    difficulty: 'medium',
+                    content: 'Add two linked lists representing numbers.',
+                    oneLiner: 'Add digits from each list node by node with carry.',
+                    threeLiner: 'We add the numbers digit by digit.<br>If the sum is too big, we carry to the next one.<br>We build a new list as we go.',
+                    mnemonics: [
+                        '"Add values + carry" → total = l1.val + l2.val + carry',
+                        '"Carry forward" → carry = total // 10',
+                        '"Create node" → current.next = ListNode(total % 10)'
+                    ],
+                    code: `def addTwoNumbers(l1, l2):
+    dummy = ListNode()
+    curr, carry = dummy, 0
+
+    while l1 or l2 or carry:
+        val1 = l1.val if l1 else 0
+        val2 = l2.val if l2 else 0
+        carry, sum_val = divmod(val1 + val2 + carry, 10)
+        
+        curr.next = ListNode(sum_val)
+        curr = curr.next
+
+        l1 = l1.next if l1 else None
+        l2 = l2.next if l2 else None
+
+    return dummy.next`
+                },
+                {
+                    id: 'linked-list-8',
+                    title: 'Find The Duplicate Number',
+                    difficulty: 'medium',
+                    content: 'Find the duplicate number in an array.',
+                    oneLiner: 'Use Floyd\'s Cycle Detection (like Linked List Cycle) on index mapping.',
+                    threeLiner: 'We pretend the numbers are pointers in a list.<br>We find a cycle using slow and fast.<br>Then we find where the cycle begins — that\'s the duplicate.',
+                    mnemonics: [
+                        '"Find meeting" → slow = nums[slow]; fast = nums[nums[fast]]',
+                        '"Find entrance" → slow = 0; move both till they meet',
+                        '"Return dup" → return slow'
+                    ],
+                    code: `def findDuplicate(nums):
+    slow, fast = nums[0], nums[0]
+    
+    while True:
+        slow = nums[slow]
+        fast = nums[nums[fast]]
+        if slow == fast:
+            break
+
+    slow = nums[0]
+    while slow != fast:
+        slow = nums[slow]
+        fast = nums[fast]
+
+    return slow`
+                },
+                {
+                    id: 'linked-list-9',
+                    title: 'LRU Cache',
+                    difficulty: 'medium',
+                    content: 'Implement an LRU (Least Recently Used) Cache.',
+                    oneLiner: 'Use a hash map + doubly linked list to track usage order and values.',
+                    threeLiner: 'We keep a list of recently used items.<br>When something is used, we move it to the front.<br>If the cache is full, we remove the oldest from the back.',
+                    mnemonics: [
+                        '"Get/move to front" → move_to_front(node)',
+                        '"Insert new" → add node to head',
+                        '"Evict old" → remove tail node if over capacity'
+                    ],
+                    code: `from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.cache = OrderedDict()
+        self.capacity = capacity
+
+    def get(self, key):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        return -1
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        self.cache[key] = value
+        if len(self.cache) > self.capacity:
+            self.cache.popitem(last=False)`
+                },
+                {
+                    id: 'linked-list-10',
+                    title: 'Merge K Sorted Lists',
+                    difficulty: 'hard',
+                    content: 'Merge k sorted linked lists into one sorted list.',
+                    oneLiner: 'Use a min-heap to always pick the smallest node among lists.',
+                    threeLiner: 'We look at the first node from each list.<br>We always pick the smallest and move forward in that list.<br>We keep building a new sorted list.',
+                    mnemonics: [
+                        '"Push all heads" → heapq.heappush(heap, (node.val, i, node))',
+                        '"Pop smallest" → val, i, node = heapq.heappop(heap)',
+                        '"Advance list" → heapq.heappush(heap, (node.next.val, i, node.next))'
+                    ],
+                    code: `from heapq import heappush, heappop
+
+def mergeKLists(lists):
+    heap = []
+    dummy = ListNode()
+    curr = dummy
+
+    for i, lst in enumerate(lists):
+        if lst:
+            heappush(heap, (lst.val, i, lst))
+    
+    while heap:
+        val, i, node = heappop(heap)
+        curr.next = node
+        curr = node
+        if node.next:
+            heappush(heap, (node.next.val, i, node.next))
+    
+    return dummy.next`
+                },
+                {
+                    id: 'linked-list-11',
+                    title: 'Reverse Nodes in K-Group',
+                    difficulty: 'hard',
+                    content: 'Reverse nodes in a linked list in groups of k nodes at a time.',
+                    oneLiner: 'Group nodes in k, reverse in-place, and connect recursively or iteratively.',
+                    threeLiner: 'We take chunks of k nodes.<br>We flip the order of each group.<br>We connect the reversed parts back together.',
+                    mnemonics: [
+                        '"Count nodes" → for _ in range(k): if not curr: return head',
+                        '"Reverse k" → reverse segment between head and k-th',
+                        '"Link next group" → head.next = recurse/iterate with next group'
+                    ],
+                    code: `def reverseKGroup(head, k):
+    def get_kth(curr, k):
+        while curr and k > 0:
+            curr = curr.next
+            k -= 1
+        return curr
+
+    dummy = ListNode(0)
+    dummy.next = head
+    group_prev = dummy
+
+    while True:
+        kth = get_kth(group_prev, k)
+        if not kth:
+            break
+        group_next = kth.next
+
+        # Reverse group
+        prev, curr = kth.next, group_prev.next
+        while curr != group_next:
+            temp = curr.next
+            curr.next = prev
+            prev = curr
+            curr = temp
+
+        temp = group_prev.next
+        group_prev.next = kth
+        group_prev = temp
+
+    return dummy.next`
+                }
+            ],
+            'stack': [
+                {
+                    id: 'stack-1',
+                    title: 'Valid Parentheses',
+                    difficulty: 'easy',
+                    content: 'Given a string containing only ()[]{}}, determine if it is valid.',
+                    oneLiner: 'Use a stack to match every closing bracket with the latest opening one.',
+                    threeLiner: 'Open brackets go into a bag.<br>If you see a closer, match it with the last opener.<br>If the bag is empty at the end, it\'s valid!',
+                    mnemonics: [
+                        '"Push opener" → stack.append(char)',
+                        '"Pop and match" → top = stack.pop() if stack else \'#\'',
+                        '"Check match" → if mapping[char] != top: return False'
+                    ],
+                    code: `def isValid(s):
+    stack = []
+    mapping = {')': '(', '}': '{', ']': '['}
+    
+    for char in s:
+        if char in mapping:
+            top = stack.pop() if stack else '#'
+            if mapping[char] != top:
+                return False
+        else:
+            stack.append(char)
+    
+    return not stack`
+                },
+                {
+                    id: 'stack-2',
+                    title: 'Min Stack',
+                    difficulty: 'easy',
+                    content: 'Implement a stack that supports push, pop, top, and retrieving the minimum element in constant time.',
+                    oneLiner: 'Keep a second stack that always holds the current minimum.',
+                    threeLiner: 'One stack is for real items.<br>Another stack is for the smallest so far.<br>Peek the small stack to get the min anytime!',
+                    mnemonics: [
+                        '"Push min" → if not min_stack or val <= min_stack[-1]: min_stack.append(val)',
+                        '"Pop min too" → if popped == min_stack[-1]: min_stack.pop()',
+                        '"Get min" → return min_stack[-1]'
+                    ],
+                    code: `class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []
+
+    def push(self, val):
+        self.stack.append(val)
+        if not self.min_stack or val <= self.min_stack[-1]:
+            self.min_stack.append(val)
+
+    def pop(self):
+        if self.stack.pop() == self.min_stack[-1]:
+            self.min_stack.pop()
+
+    def top(self):
+        return self.stack[-1]
+
+    def getMin(self):
+        return self.min_stack[-1]`
+                },
+                {
+                    id: 'stack-3',
+                    title: 'Evaluate Reverse Polish Notation',
+                    difficulty: 'medium',
+                    content: 'Evaluate an arithmetic expression in Reverse Polish Notation.',
+                    oneLiner: 'Use a stack to apply operators to previous numbers.',
+                    threeLiner: 'Read numbers and put them in a stack.<br>When you see a symbol, do math on the top two numbers.<br>Put the result back and keep going!',
+                    mnemonics: [
+                        '"Pop two, compute" → a = stack.pop(); b = stack.pop()',
+                        '"Divide carefully" → stack.append(int(a / b))',
+                        '"Push number" → stack.append(int(token))'
+                    ],
+                    code: `def evalRPN(tokens):
+    stack = []
+    for token in tokens:
+        if token in {'+', '-', '*', '/'}:
+            b, a = stack.pop(), stack.pop()
+            if token == '+':
+                stack.append(a + b)
+            elif token == '-':
+                stack.append(a - b)
+            elif token == '*':
+                stack.append(a * b)
+            elif token == '/':
+                stack.append(int(a / b))  # Ensure truncation towards zero
+        else:
+            stack.append(int(token))
+    
+    return stack[0]`
+                },
+                {
+                    id: 'stack-4',
+                    title: 'Generate Parentheses',
+                    difficulty: 'medium',
+                    content: 'Generate all valid combinations of n pairs of parentheses.',
+                    oneLiner: 'Use backtracking with open and close counters to build valid combinations.',
+                    threeLiner: 'You can only close if you\'ve opened one.<br>Keep adding ( or ) if it\'s allowed.<br>Add to the list when it\'s full and balanced!',
+                    mnemonics: [
+                        '"Base case full" → if len(s) == 2 * n: res.append(s)',
+                        '"Try opening" → if left < n: backtrack(s + "(", ...)',
+                        '"Try closing" → if right < left: backtrack(s + ")", ...)'
+                    ],
+                    code: `def generateParenthesis(n):
+    res = []
+    
+    def backtrack(s, left, right):
+        if len(s) == 2 * n:
+            res.append(s)
+            return
+        if left < n:
+            backtrack(s + "(", left + 1, right)
+        if right < left:
+            backtrack(s + ")", left, right + 1)
+    
+    backtrack("", 0, 0)
+    return res`
+                },
+                {
+                    id: 'stack-5',
+                    title: 'Daily Temperatures',
+                    difficulty: 'medium',
+                    content: 'Given an array of temperatures, return an array where ans[i] is the number of days until a warmer temperature.',
+                    oneLiner: 'Use a monotonic stack to find the next warmer day.',
+                    threeLiner: 'Keep days in a stack until a warmer one shows up.<br>Then pop and mark how long they waited.<br>Repeat until all are checked.',
+                    mnemonics: [
+                        '"Pop when warmer" → while stack and temperatures[stack[-1]] < temp:',
+                        '"Set wait days" → res[idx] = i - idx',
+                        '"Track index" → stack.append(i)'
+                    ],
+                    code: `def dailyTemperatures(temperatures):
+    stack = []
+    res = [0] * len(temperatures)
+    
+    for i, temp in enumerate(temperatures):
+        while stack and temperatures[stack[-1]] < temp:
+            idx = stack.pop()
+            res[idx] = i - idx
+        stack.append(i)
+    
+    return res`
+                },
+                {
+                    id: 'stack-6',
+                    title: 'Car Fleet',
+                    difficulty: 'medium',
+                    content: 'Given position and speed arrays of cars, return the number of fleets that arrive at the destination.',
+                    oneLiner: 'Sort cars by position and use a stack to track merging fleets.',
+                    threeLiner: 'Sort cars from back to front.<br>See how long each takes to reach the end.<br>If one catches another, they become a team!',
+                    mnemonics: [
+                        '"Sort by position" → cars = sorted(zip(position, speed), reverse=True)',
+                        '"Calc time to end" → time = (target - pos) / spd',
+                        '"Stack only new fleets" → if not stack or time > stack[-1]: stack.append(time)'
+                    ],
+                    code: `def carFleet(target, position, speed):
+    cars = sorted(zip(position, speed), reverse=True)
+    stack = []
+    
+    for pos, spd in cars:
+        time = (target - pos) / spd
+        if not stack or time > stack[-1]:
+            stack.append(time)
+    
+    return len(stack)`
+                },
+                {
+                    id: 'stack-7',
+                    title: 'Largest Rectangle in Histogram',
+                    difficulty: 'hard',
+                    content: 'Find the largest rectangular area in a histogram.',
+                    oneLiner: 'Use a monotonic stack to compute max area rectangle at each drop.',
+                    threeLiner: 'Go bar by bar, stack up when taller.<br>If a lower one comes, pop and measure.<br>Always track the biggest area!',
+                    mnemonics: [
+                        '"Push height index" → stack.append(i)',
+                        '"Pop and calc area" → width = i if not stack else i - stack[-1] - 1',
+                        '"Update max area" → max_area = max(max_area, height * width)'
+                    ],
+                    code: `def largestRectangleArea(heights):
+    stack = []
+    max_area = 0
+    heights.append(0)  # Sentinel value
+    
+    for i, h in enumerate(heights):
+        while stack and heights[stack[-1]] > h:
+            height = heights[stack.pop()]
+            width = i if not stack else i - stack[-1] - 1
+            max_area = max(max_area, height * width)
+        stack.append(i)
+    
+    return max_area`
+                },
+            'binary-search': [
+                {
+                    id: 'binary-search-1',
+                    title: 'Binary Search',
+                    difficulty: 'easy',
+                    content: 'Given a sorted array, return the index of target. If not found, return -1.',
+                    oneLiner: 'Use two pointers to repeatedly cut the search range in half.',
+                    threeLiner: 'We look in the middle of the list.<br>If it\'s not the number, we search only the left or right part.<br>We do this again and again until we find it or run out.',
+                    mnemonics: [
+                        '"Set range" → low, high = 0, len(nums) - 1',
+                        '"Check mid" → mid = (low + high) // 2',
+                        '"Narrow search" → if nums[mid] < target: low = mid + 1 else: high = mid - 1'
+                    ],
+                    code: `def binarySearch(nums, target):
+    left, right = 0, len(nums) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        elif nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+            
+    return -1`
+                },
+                {
+                    id: 'binary-search-2',
+                    title: 'Search a 2D Matrix',
+                    difficulty: 'medium',
+                    content: 'Given an m x n matrix where rows and columns are sorted, search for a target value.',
+                    oneLiner: 'Treat the 2D matrix like a 1D array and use binary search.',
+                    threeLiner: 'We pretend the grid is just one long list.<br>We use binary search on that list.<br>We change the middle number back to row and column to check it.',
+                    mnemonics: [
+                        '"Convert index" → row = mid // cols; col = mid % cols',
+                        '"Compare mid" → if matrix[row][col] == target: return True',
+                        '"Adjust range" → low = mid + 1 or high = mid - 1'
+                    ],
+                    code: `def searchMatrix(matrix, target):
+    if not matrix or not matrix[0]:
+        return False
+    
+    rows, cols = len(matrix), len(matrix[0])
+    left, right = 0, rows * cols - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        mid_value = matrix[mid // cols][mid % cols]
+        
+        if mid_value == target:
+            return True
+        elif mid_value < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+            
+    return False`
+                },
+                {
+                    id: 'binary-search-3',
+                    title: 'Koko Eating Bananas',
+                    difficulty: 'medium',
+                    content: 'Find the minimum eating speed k such that Koko can eat all bananas within h hours.',
+                    oneLiner: 'Binary search the eating speed to find the minimum speed that finishes on time.',
+                    threeLiner: 'We try different eating speeds.<br>If she can finish in time, we try slower ones.<br>If not, we try faster ones.',
+                    mnemonics: [
+                        '"Search range" → low, high = 1, max(piles)',
+                        '"Check time" → total_time = sum(ceil(pile / mid))',
+                        '"Narrow search" → if time <= h: try slower; else: go faster'
+                    ],
+                    code: `import math
+
+def minEatingSpeed(piles, h):
+    left, right = 1, max(piles)
+    
+    def canFinish(speed):
+        return sum(math.ceil(pile / speed) for pile in piles) <= h
+    
+    while left < right:
+        mid = (left + right) // 2
+        if canFinish(mid):
+            right = mid
+        else:
+            left = mid + 1
+            
+    return left`
+                },
+                {
+                    id: 'binary-search-4',
+                    title: 'Find Minimum in Rotated Sorted Array',
+                    difficulty: 'medium',
+                    content: 'Find the minimum element in a rotated sorted array.',
+                    oneLiner: 'Use binary search to find the smallest element by comparing with the rightmost.',
+                    threeLiner: 'The smallest number is in the rotated part.<br>We keep checking the middle and comparing to the end.<br>We move left or right depending on which side is sorted.',
+                    mnemonics: [
+                        '"Mid vs right" → if nums[mid] > nums[right]: search right',
+                        '"Else search left" → right = mid',
+                        '"Result is nums[left]" → return nums[left]'
+                    ],
+                    code: `def findMin(nums):
+    left, right = 0, len(nums) - 1
+    
+    while left < right:
+        mid = (left + right) // 2
+        if nums[mid] > nums[right]:  
+            left = mid + 1
+        else:
+            right = mid  
+            
+    return nums[left]`
+                },
+                {
+                    id: 'binary-search-5',
+                    title: 'Search in Rotated Sorted Array',
+                    difficulty: 'medium',
+                    content: 'Search for target in a rotated sorted array.',
+                    oneLiner: 'Binary search while checking which half is sorted and target range.',
+                    threeLiner: 'We split the list in half each time.<br>We check which half is in order.<br>Then we pick the side where the target can be.',
+                    mnemonics: [
+                        '"Left sorted?" → if nums[low] <= nums[mid]:',
+                        '"Target in left?" → if nums[low] <= target < nums[mid]: high = mid - 1',
+                        '"Otherwise search right" → low = mid + 1'
+                    ],
+                    code: `def search(nums, target):
+    left, right = 0, len(nums) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[left] <= nums[mid]:  
+            if nums[left] <= target < nums[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        else:  
+            if nums[mid] < target <= nums[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+                
+    return -1`
+                },
+                {
+                    id: 'binary-search-6',
+                    title: 'Time-Based Key-Value Store',
+                    difficulty: 'medium',
+                    content: 'Implement a key-value store that supports setting values with timestamps and retrieving the most recent value before a given timestamp.',
+                    oneLiner: 'Store timestamped values in a list and binary search for the latest one <= target time.',
+                    threeLiner: 'We save every version of a value with the time it was saved.<br>When asked for a time, we look for the latest version at or before that time.<br>We do this using binary search.',
+                    mnemonics: [
+                        '"Store as list" → store[key].append((timestamp, value))',
+                        '"Binary search timestamp" → while low <= high: check mid time',
+                        '"Return latest <= timestamp" → res = value if time <= target'
+                    ],
+                    code: `from collections import defaultdict
+import bisect
+
+class TimeMap:
+    def __init__(self):
+        self.store = defaultdict(list)
+
+    def set(self, key, value, timestamp):
+        self.store[key].append((timestamp, value))
+
+    def get(self, key, timestamp):
+        if key not in self.store:
+            return ""
+        
+        values = self.store[key]
+        idx = bisect.bisect_right(values, (timestamp, chr(255))) - 1
+        
+        return values[idx][1] if idx >= 0 else ""`
+                },
+                {
+                    id: 'binary-search-7',
+                    title: 'Median of Two Sorted Arrays',
+                    difficulty: 'hard',
+                    content: 'Find the median of two sorted arrays.',
+                    oneLiner: 'Use binary search to partition both arrays such that left half ≤ right half.',
+                    threeLiner: 'We cut both arrays in half in a smart way.<br>We want everything on the left half to be smaller than the right.<br>When it\'s balanced, we take the middle numbers for the median.',
+                    mnemonics: [
+                        '"Binary on smaller array" → if len(A) > len(B): swap',
+                        '"Partition and check" → Aleft <= Bright and Bleft <= Aright',
+                        '"Median calc" → if total even: avg of max(left), min(right); else: max(left)'
+                    ],
+                    code: `def findMedianSortedArrays(nums1, nums2):
+    if len(nums1) > len(nums2):
+        nums1, nums2 = nums2, nums1  # Ensure nums1 is the smaller array
+
+    x, y = len(nums1), len(nums2)
+    left, right = 0, x
+
+    while left <= right:
+        partitionX = (left + right) // 2
+        partitionY = (x + y + 1) // 2 - partitionX
+
+        maxX = float('-inf') if partitionX == 0 else nums1[partitionX - 1]
+        minX = float('inf') if partitionX == x else nums1[partitionX]
+        maxY = float('-inf') if partitionY == 0 else nums2[partitionY - 1]
+        minY = float('inf') if partitionY == y else nums2[partitionY]
+
+        if maxX <= minY and maxY <= minX:
+            if (x + y) % 2 == 0:
+                return (max(maxX, maxY) + min(minX, minY)) / 2
+            else:
+                return max(maxX, maxY)
+        elif maxX > minY:
+            right = partitionX - 1
+        else:
+            left = partitionX + 1`
+                }
+            ],
+            'sliding-window': [
+                {
+                    id: 'sliding-window-1',
+                    title: 'Best Time to Buy and Sell Stock',
+                    difficulty: 'easy',
+                    content: 'Given an array where prices[i] is the price of a given stock on day i, find the maximum profit.',
+                    oneLiner: 'Track the minimum price so far and compute profit at each step.',
+                    threeLiner: 'We watch the lowest price we\'ve seen.<br>Then we check how much we\'d earn if we sold today.<br>We remember the best profit we ever found.',
+                    mnemonics: [
+                        '"Track min" → min_price = min(min_price, price)',
+                        '"Check profit" → profit = price - min_price',
+                        '"Update best" → max_profit = max(max_profit, profit)'
+                    ],
+                    code: `def maxProfit(prices):
+    min_price = float('inf')
+    max_profit = 0
+    
+    for price in prices:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    
+    return max_profit`
+                },
+                {
+                    id: 'sliding-window-2',
+                    title: 'Longest Substring Without Repeating Characters',
+                    difficulty: 'medium',
+                    content: 'Find the length of the longest substring without repeating characters.',
+                    oneLiner: 'Use a sliding window and a set/map to track characters.',
+                    threeLiner: 'We move across the string, adding each new letter.<br>If we see a repeat, we shrink the start of the window.<br>We keep track of the longest clean stretch.',
+                    mnemonics: [
+                        '"Check char in map" → if s[r] in seen: l = max(l, seen[s[r]] + 1)',
+                        '"Store index" → seen[s[r]] = r',
+                        '"Track max length" → res = max(res, r - l + 1)'
+                    ],
+                    code: `def lengthOfLongestSubstring(s):
+    char_set = set()
+    left = max_length = 0
+    
+    for right in range(len(s)):
+        while s[right] in char_set:
+            char_set.remove(s[left])
+            left += 1
+        char_set.add(s[right])
+        max_length = max(max_length, right - left + 1)
+    
+    return max_length`
+                },
+                {
+                    id: 'sliding-window-3',
+                    title: 'Longest Repeating Character Replacement',
+                    difficulty: 'medium',
+                    content: 'Find the length of the longest substring with at most k character replacements.',
+                    oneLiner: 'Use sliding window; replace excess characters beyond the most frequent one.',
+                    threeLiner: 'We build a window and count letters inside.<br>We make sure we don\'t replace more than k characters.<br>If we do, we shrink the window.',
+                    mnemonics: [
+                        '"Track max freq" → max_count = max(counts.values())',
+                        '"Valid window?" → if (right - left + 1) - max_count > k: shrink',
+                        '"Update max" → res = max(res, window length)'
+                    ],
+                    code: `from collections import Counter
+
+def characterReplacement(s, k):
+    count = Counter()
+    left = max_length = max_freq = 0
+    
+    for right in range(len(s)):
+        count[s[right]] += 1
+        max_freq = max(max_freq, count[s[right]])
+        
+        if (right - left + 1) - max_freq > k:
+            count[s[left]] -= 1
+            left += 1
+        
+        max_length = max(max_length, right - left + 1)
+    
+    return max_length`
+                },
+                {
+                    id: 'sliding-window-4',
+                    title: 'Permutation in String',
+                    difficulty: 'medium',
+                    content: 'Given two strings s1 and s2, check if s1\'s permutation is a substring of s2.',
+                    oneLiner: 'Use sliding window with frequency counters and compare with target.',
+                    threeLiner: 'We count letters in the small word.<br>Then we move a window over the big word and check each group of letters.<br>If one window matches, we found a match!',
+                    mnemonics: [
+                        '"Build counters" → Counter(s1) == Counter(window)',
+                        '"Slide window" → add s2[i], remove s2[i - len(s1)]',
+                        '"Compare counters" → if match: return True'
+                    ],
+                    code: `from collections import Counter
+
+def checkInclusion(s1, s2):
+    if len(s1) > len(s2):
+        return False
+    
+    s1_count = Counter(s1)
+    s2_count = Counter(s2[:len(s1)])
+    
+    if s1_count == s2_count:
+        return True
+    
+    left = 0
+    for right in range(len(s1), len(s2)):
+        s2_count[s2[right]] += 1
+        s2_count[s2[left]] -= 1
+        if s2_count[s2[left]] == 0:
+            del s2_count[s2[left]]
+        left += 1
+        if s1_count == s2_count:
+            return True
+    
+    return False`
+                },
+                {
+                    id: 'sliding-window-5',
+                    title: 'Minimum Window Substring',
+                    difficulty: 'hard',
+                    content: 'Given two strings s and t, find the minimum substring of s that contains all characters of t.',
+                    oneLiner: 'Use sliding window and hashmap to shrink window once all chars are matched.',
+                    threeLiner: 'We count the letters we need.<br>As we move forward, we check if we have enough of each letter.<br>Then we shrink the window from the left to find the smallest one.',
+                    mnemonics: [
+                        '"Need map" → need = Counter(t)',
+                        '"Expand window" → window[s[r]] += 1',
+                        '"Shrink if valid" → while formed == required: update res, move left'
+                    ],
+                    code: `from collections import Counter
+
+def minWindow(s, t):
+    if not t or not s:
+        return ""
+    
+    t_count = Counter(t)
+    window_count = Counter()
+    
+    left = right = formed = 0
+    required = len(t_count)
+    min_len = float("inf")
+    min_window = ""
+
+    while right < len(s):
+        window_count[s[right]] += 1
+        if window_count[s[right]] == t_count[s[right]]:
+            formed += 1
+
+        while formed == required:
+            if right - left + 1 < min_len:
+                min_len = right - left + 1
+                min_window = s[left:right+1]
+
+            window_count[s[left]] -= 1
+            if s[left] in t_count and window_count[s[left]] < t_count[s[left]]:
+                formed -= 1
+
+            left += 1
+        
+        right += 1
+    
+    return min_window`
+                },
+                {
+                    id: 'sliding-window-6',
+                    title: 'Sliding Window Maximum',
+                    difficulty: 'hard',
+                    content: 'Given an array nums and a window size k, return the maximum element in each window.',
+                    oneLiner: 'Use a deque to keep track of max values in the current window.',
+                    threeLiner: 'We go through numbers with a window of size k.<br>We keep only the biggest numbers inside the window.<br>We throw out numbers that are too old or too small.',
+                    mnemonics: [
+                        '"Pop smaller" → while q and nums[i] > nums[q[-1]]: q.pop()',
+                        '"Pop out-of-window" → if q[0] <= i - k: q.popleft()',
+                        '"Append max" → if i >= k - 1: res.append(nums[q[0]])'
+                    ],
+                    code: `from collections import deque
+
+def maxSlidingWindow(nums, k):
+    if not nums:
+        return []
+    
+    deque_window = deque()
+    result = []
+
+    for i in range(len(nums)):
+        # Remove elements outside the window
+        if deque_window and deque_window[0] < i - k + 1:
+            deque_window.popleft()
+
+        # Remove smaller elements in k range
+        while deque_window and nums[deque_window[-1]] < nums[i]:
+            deque_window.pop()
+        
+        deque_window.append(i)
+
+        # Append max value once window size is reached
+        if i >= k - 1:
+            result.append(nums[deque_window[0]])
+
+    return result`
+                }
+            ],
+                    code: `def hasDuplicate(nums):
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False`
+                },
+                {
+                    id: 'arrays-hashing-2',
+                    title: 'Valid Anagram',
+                    difficulty: 'easy',
+                    content: 'Given two strings s and t, return true if the two strings are anagrams of each other, otherwise return false. An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.',
+                    oneLiner: 'Use counters (hashmaps) to compare character frequencies.',
+                    threeLiner: 'We count the letters in both words.<br>If every letter shows up the same number of times, it\'s an anagram.<br>Otherwise, it\'s not.',
+                    mnemonics: [
+                        '"Count both" → Counter(s) == Counter(t)',
+                        '"Compare maps" → for key in counts: compare values',
+                        '"Return result" → return True/False'
+                    ],
+                    code: `def isAnagram(s, t):
+    if len(s) != len(t):
+        return False
+
+    count = [0] * 26
+    for i in range(len(s)):
+        count[ord(s[i]) - ord('a')] += 1
+        count[ord(t[i]) - ord('a')] -= 1
+
+    for val in count:
+        if val != 0:
+            return False
+    return True`
+                },
+                {
+                    id: 'arrays-hashing-3',
+                    title: 'Two Sum',
+                    difficulty: 'easy',
+                    content: 'Given an array of integers nums and an integer target, return the indices i and j such that nums[i] + nums[j] == target and i != j. You may assume that every input has exactly one pair of indices i and j that satisfy the condition.',
+                    oneLiner: 'Store each number\'s complement in a hashmap as we loop.',
+                    threeLiner: 'We look for two numbers that add to a target.<br>We remember each number we see and what we need to reach the target.<br>If we find the right pair, we return their positions.',
+                    mnemonics: [
+                        '"Check map" → if target - num in seen: return [i, seen[target - num]]',
+                        '"Store index" → seen[num] = i',
+                        '"Loop through" → for i, num in enumerate(nums):'
+                    ],
+                    code: `def twoSum(nums, target):
+    indices = {}  # val -> index
+
+    for i, n in enumerate(nums):
+        indices[n] = i
+
+    for i, n in enumerate(nums):
+        diff = target - n
+        if diff in indices and indices[diff] != i:
+            return [i, indices[diff]]`
+                },
+                {
+                    id: 'arrays-hashing-4',
+                    title: 'Group Anagrams',
+                    difficulty: 'medium',
+                    content: 'Given an array of strings strs, group all anagrams together into sublists. You may return the output in any order. An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.',
+                    oneLiner: 'Group words using sorted letters as a key in a hashmap.',
+                    threeLiner: 'We sort the letters in each word.<br>Words with the same letters go into the same group.<br>We collect all the groups.',
+                    mnemonics: [
+                        '"Sort word" → key = \''.join(sorted(word))',
+                        '"Group by key" → anagram_map[key].append(word)',
+                        '"Return values" → return anagram_map.values()'
+                    ],
+                    code: `def groupAnagrams(strs):
+    res = defaultdict(list)
+    for s in strs:
+        count = [0] * 26
+        for c in s:
+            count[ord(c) - ord('a')] += 1
+        res[tuple(count)].append(s)
+    return list(res.values())`
+                },
+                {
+                    id: 'arrays-hashing-5',
+                    title: 'Top K Frequent Elements',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums and an integer k, return the k most frequent elements within the array. The test cases are generated such that the answer is always unique. You may return the output in any order.',
+                    oneLiner: 'Use a counter and a heap to get the top k items.',
+                    threeLiner: 'We count how many times each number shows up.<br>We keep the k most common ones.<br>Then we return them.',
+                    mnemonics: [
+                        '"Count frequency" → count = Counter(nums)',
+                        '"Heap select top" → heapq.nlargest(k, count.keys(), key=count.get)',
+                        '"Return result" → return result'
+                    ],
+                    code: `def topKFrequent(nums, k):
+    count = {}
+    freq = [[] for i in range(len(nums) + 1)]
+
+    for num in nums:
+        count[num] = 1 + count.get(num, 0)
+    for num, cnt in count.items():
+        freq[cnt].append(num)
+    
+    res = []
+    for i in range(len(freq) - 1, 0, -1):
+        for num in freq[i]:
+            res.append(num)
+            if len(res) == k:
+                return res`
+                },
+                {
+                    id: 'arrays-hashing-6',
+                    title: 'Encode and Decode Strings',
+                    difficulty: 'medium',
+                    content: 'Design an algorithm to encode a list of strings to a single string. The encoded string is then decoded back to the original list of strings. Please implement encode and decode.',
+                    oneLiner: 'Use a length prefix or delimiter to encode, then decode safely.',
+                    threeLiner: 'We turn each word into a number + word combo.<br>That way we can separate them later.<br>We read the length to split them back correctly.',
+                    mnemonics: [
+                        '"Encode with length" → s = str(len(word)) + "#" + word',
+                        '"Split by count" → length = int(s[:i]), then s[i+1:i+1+length]',
+                        '"Loop until done" → while i < len(s): decode'
+                    ],
+                    code: `def encode(strs):
+    res = ""
+    for s in strs:
+        res += str(len(s)) + "#" + s
+    return res
+
+def decode(s):
+    res = []
+    i = 0
+    
+    while i < len(s):
+        j = i
+        while s[j] != '#':
+            j += 1
+        length = int(s[i:j])
+        i = j + 1
+        j = i + length
+        res.append(s[i:j])
+        i = j
+        
+    return res`
+                },
+                {
+                    id: 'arrays-hashing-7',
+                    title: 'Product of Array Except Self',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums, return an array output where output[i] is the product of all the elements of nums except nums[i]. You must write an algorithm without using the division operation and in O(n) time.',
+                    oneLiner: 'Use prefix and suffix multiplications without division.',
+                    threeLiner: 'We find how much every number would be if we multiply all other numbers.<br>First, we go left to right.<br>Then, we go right to left and finish the math.',
+                    mnemonics: [
+                        '"Left pass" → for i in range(n): res[i] *= prefix',
+                        '"Right pass" → for i in reversed(range(n)): res[i] *= suffix',
+                        '"Update prefixes" → prefix *= nums[i], suffix *= nums[i]'
+                    ],
+                    code: `def productExceptSelf(nums):
+    res = [1] * (len(nums))
+
+    prefix = 1
+    for i in range(len(nums)):
+        res[i] = prefix
+        prefix *= nums[i]
+    postfix = 1
+    for i in range(len(nums) - 1, -1, -1):
+        res[i] *= postfix
+        postfix *= nums[i]
+    return res`
+                },
+                {
+                    id: 'arrays-hashing-8',
+                    title: 'Valid Sudoku',
+                    difficulty: 'medium',
+                    content: 'Determine if a 9 x 9 Sudoku board is valid. A valid Sudoku board must follow these rules: Each row, each column, and each of the nine 3 x 3 sub-boxes must contain the digits 1-9 without repetition.',
+                    oneLiner: 'Use sets to check each row, column, and 3x3 box.',
+                    threeLiner: 'Each row, column, and box must have unique numbers.<br>We go through the board and record what we see.<br>If anything repeats in the same row, column, or box, it\'s not valid.',
+                    mnemonics: [
+                        '"Check each cell" → for i in range(9): for j in range(9):',
+                        '"Use 3 keys" → row[i], col[j], box[i//3, j//3]',
+                        '"Add or return False" → if val in set: return False else: add'
+                    ],
+                    code: `def isValidSudoku(board):
+    for row in range(9):
+        seen = set()
+        for i in range(9):
+            if board[row][i] == ".": 
+                continue
+            if board[row][i] in seen:
+                return False
+            seen.add(board[row][i])
+    
+    for col in range(9):
+        seen = set()
+        for i in range(9):
+            if board[i][col] == ".":
+                continue
+            if board[i][col] in seen:
+                return False
+            seen.add(board[i][col])
+        
+    for square in range(9):
+        seen = set()
+        for i in range(3):
+            for j in range(3):
+                row = (square//3) * 3 + i
+                col = (square % 3) * 3 + j
+                if board[row][col] == ".":
+                    continue
+                if board[row][col] in seen:
+                    return False
+                seen.add(board[row][col])
+    return True`
+                },
+                {
+                    id: 'arrays-hashing-9',
+                    title: 'Longest Consecutive Sequence',
+                    difficulty: 'medium',
+                    content: 'Given an array of integers nums, return the length of the longest consecutive sequence of elements that can be formed. A consecutive sequence is a sequence of elements in which each element is exactly 1 greater than the previous element.',
+                    oneLiner: 'Use a set and expand sequences from the smallest number.',
+                    threeLiner: 'We put all the numbers in a quick lookup set.<br>Then we start from numbers that are the beginning of a sequence.<br>We count how long each chain goes.',
+                    mnemonics: [
+                        '"Add to set" → num_set = set(nums)',
+                        '"Start from beginning" → if num - 1 not in num_set:',
+                        '"Expand right" → while num + streak in num_set: streak += 1'
+                    ],
+                    code: `def longestConsecutive(nums):
+    numSet = set(nums)
+    longest = 0
+
+    for num in numSet:
+        if (num - 1) not in numSet:
+            length = 1
+            while (num + length) in numSet:
+                length += 1
+            longest = max(length, longest)
+    return longest`
+                }
+            ],
+            'two-pointers': [
+                {
+                    id: 'two-pointers-1',
+                    title: 'Valid Palindrome',
+                    difficulty: 'easy',
+                    content: 'Check if a given string is a palindrome, considering only alphanumeric characters and ignoring cases.',
+                    oneLiner: 'Use two pointers from both ends, skipping non-alphanumerics and comparing characters.',
+                    threeLiner: 'We look at one letter from the front and one from the back.<br>We skip anything that\'s not a letter or number.<br>If everything matches going inward, it\'s a palindrome!',
+                    mnemonics: [
+                        '"Skip non-letters" → if not s[l].isalnum(): l += 1',
+                        '"Lowercase compare" → if s[l].lower() != s[r].lower(): return False',
+                        '"Move pointers" → l += 1, r -= 1'
+                    ],
+                    code: `def isPalindrome(s):
+    left, right = 0, len(s) - 1
+    
+    while left < right:
+        while left < right and not s[left].isalnum():
+            left += 1
+        while left < right and not s[right].isalnum():
+            right -= 1
+            
+        if s[left].lower() != s[right].lower():
+            return False
+        
+        left += 1
+        right -= 1
+    
+    return True`
+                },
+                {
+                    id: 'two-pointers-2',
+                    title: 'Two Sum II - Input Array Is Sorted',
+                    difficulty: 'medium',
+                    content: 'Find two numbers in a sorted array that add up to a target.',
+                    oneLiner: 'Use two pointers from both ends and move based on sum.',
+                    threeLiner: 'We start from both ends of the list.<br>If the sum is too big, move the right one left.<br>If too small, move the left one right — until it fits!',
+                    mnemonics: [
+                        '"Check sum" → if nums[l] + nums[r] == target: return',
+                        '"Too big?" → if sum > target: r -= 1',
+                        '"Too small?" → if sum < target: l += 1'
+                    ],
+                    code: `def twoSum(numbers, target):
+    left, right = 0, len(numbers) - 1
+    
+    while left < right:
+        curr_sum = numbers[left] + numbers[right]
+        
+        if curr_sum == target:
+            return [left + 1, right + 1]  # 1-based index
+        
+        if curr_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []`
+                },
+                {
+                    id: 'two-pointers-3',
+                    title: '3Sum',
+                    difficulty: 'medium',
+                    content: 'Find all unique triplets in an array that sum to zero.',
+                    oneLiner: 'Sort the array and use two pointers within a loop.',
+                    threeLiner: 'First sort the numbers.<br>For each number, find pairs that sum to its negative.<br>Use two pointers to find all pairs efficiently.',
+                    mnemonics: [
+                        '"Sort first" → nums.sort()',
+                        '"Skip duplicates" → if i > 0 and nums[i] == nums[i-1]: continue',
+                        '"Two pointers" → left, right = i+1, len(nums)-1'
+                    ],
+                    code: `def threeSum(nums):
+    nums.sort()
+    res = []
+    
+    for i in range(len(nums) - 2):
+        if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates
+            continue
+        
+        left, right = i + 1, len(nums) - 1
+        
+        while left < right:
+            total = nums[i] + nums[left] + nums[right]
+            
+            if total == 0:
+                res.append([nums[i], nums[left], nums[right]])
+                
+                while left < right and nums[left] == nums[left + 1]:  # Skip duplicates
+                    left += 1
+                while left < right and nums[right] == nums[right - 1]:  # Skip duplicates
+                    right -= 1
+                
+                left += 1
+                right -= 1
+                
+            elif total < 0:
+                left += 1
+            else:
+                right -= 1
+                
+    return res`
+                },
+                {
+                    id: 'two-pointers-4',
+                    title: 'Container With Most Water',
+                    difficulty: 'medium',
+                    content: 'Find two vertical lines that form a container with the maximum water storage.',
+                    oneLiner: 'Use two pointers from ends and move the one with shorter height.',
+                    threeLiner: 'We look at the widest container first.<br>We always keep the bigger height and try to make width smaller.<br>We keep track of the best result as we move inward.',
+                    mnemonics: [
+                        '"Start ends" → l, r = 0, len(height) - 1',
+                        '"Calculate area" → area = min(height[l], height[r]) * (r - l)',
+                        '"Move pointer" → if height[l] < height[r]: l += 1 else: r -= 1'
+                    ],
+                    code: `def maxArea(height):
+    left, right = 0, len(height) - 1
+    max_water = 0
+    
+    while left < right:
+        max_water = max(max_water, (right - left) * min(height[left], height[right]))
+        
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    
+    return max_water`
+                },
+                {
+                    id: 'two-pointers-5',
+                    title: 'Trapping Rain Water',
+                    difficulty: 'hard',
+                    content: 'Calculate the amount of rainwater that can be trapped between the bars.',
+                    oneLiner: 'Use two pointers with left/right max to accumulate water at each position.',
+                    threeLiner: 'We look at the left and right sides of each block.<br>We keep track of the highest walls on both ends.<br>Water is trapped if the block is lower than both sides.',
+                    mnemonics: [
+                        '"Track maxes" → left_max = max(left_max, height[l])',
+                        '"Trap water" → if height[l] < height[r]: water += left_max - height[l]',
+                        '"Move inward" → l += 1 or r -= 1 depending on height'
+                    ],
+                    code: `def trap(height):
+    if not height:
+        return 0
+    
+    left, right = 0, len(height) - 1
+    left_max, right_max = 0, 0
+    trapped_water = 0
+    
+    while left < right:
+        if height[left] < height[right]:
+            if height[left] >= left_max:
+                left_max = height[left]
+            else:
+                trapped_water += left_max - height[left]
+            left += 1
+        else:
+            if height[right] >= right_max:
+                right_max = height[right]
+            else:
+                trapped_water += right_max - height[right]
+            right -= 1
+            
+    return trapped_water`
+                }
+            ],].isalnum():
+            right -= 1
+            
+        if s[left].lower() != s[right].lower():
+            return False
+        
+        left += 1
+        right -= 1
+    
+    return True
