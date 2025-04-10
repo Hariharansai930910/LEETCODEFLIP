@@ -1,4 +1,521 @@
-<!DOCTYPE html>
+<script>
+        // Global variables for tracking current state
+        let currentTopicId = '';
+        let currentProblemIndex = 0;
+        let problemsByTopic = {};
+        
+        // Show home page or topic page
+        function showHomePage() {
+            document.getElementById('home-page').classList.remove('hidden');
+            document.getElementById('topic-page').classList.add('hidden');
+            
+            // Reset current problem index
+            currentProblemIndex = 0;
+        }
+        
+        function showTopic(topicId) {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('topic-page').classList.remove('hidden');
+            
+            currentTopicId = topicId;
+            currentProblemIndex = 0;
+            
+            // Set the current topic title
+            const topicTitles = {
+                'arrays-hashing': 'Arrays and Hashing',
+                'two-pointers': 'Two Pointers',
+                'sliding-window': 'Sliding Window',
+                'binary-search': 'Binary Search',
+                'stack': 'Stack',
+                'linked-list': 'Linked List',
+                'trees': 'Trees',
+                'trie': 'Trie',
+                'heap-priority-queue': 'Heap/Priority Queue',
+                'backtracking': 'Backtracking',
+                'graphs': 'Graphs',
+                'advanced-graphs': 'Advanced Graphs',
+                '1d-dp': '1-D Dynamic Programming',
+                '2d-dp': '2-D Dynamic Programming',
+                'greedy': 'Greedy',
+                'intervals': 'Intervals',
+                'math-geometry': 'Math & Geometry',
+                'bit-manipulation': 'Bit Manipulation'
+            };
+            
+            document.getElementById('current-topic-title').textContent = topicTitles[topicId];
+            
+            // Get all problem cards for this topic
+            const topicProblems = document.querySelectorAll(`.${topicId}-problem`);
+            
+            // Hide all problem cards
+            const allProblems = document.querySelectorAll('.flashcard');
+            allProblems.forEach(problem => {
+                problem.classList.add('hidden');
+            });
+            
+            // Show only the first problem for this topic
+            if (topicProblems.length > 0) {
+                topicProblems[0].classList.remove('hidden');
+                
+                // Update problem counter
+                document.getElementById('current-problem').textContent = 1;
+                document.getElementById('total-problems').textContent = topicProblems.length;
+                
+                // Enable/disable navigation buttons
+                document.getElementById('prev-btn').disabled = true;
+                document.getElementById('next-btn').disabled = topicProblems.length <= 1;
+            }
+        }
+        
+        // Navigate between problems
+        function navigateProblem(direction) {
+            // Get all problem cards for current topic
+            const topicProblems = document.querySelectorAll(`.${currentTopicId}-problem`);
+            
+            // Hide current problem
+            topicProblems[currentProblemIndex].classList.add('hidden');
+            // Unflip the card when moving to a new problem
+            topicProblems[currentProblemIndex].classList.remove('flipped');
+            
+            // Update index
+            currentProblemIndex += direction;
+            
+            // Show new problem
+            topicProblems[currentProblemIndex].classList.remove('hidden');
+            
+            // Update problem counter
+            document.getElementById('current-problem').textContent = currentProblemIndex + 1;
+            
+            // Update button state
+            document.getElementById('prev-btn').disabled = currentProblemIndex === 0;
+            document.getElementById('next-btn').disabled = currentProblemIndex === topicProblems.length - 1;
+        }
+        
+        // Flip card functionality
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+        
+        // Tab navigation in solution - STOP PROPAGATION to prevent card flipping
+        function showTab(button, tabId) {
+            // Prevent the click from bubbling up to the card
+            event.stopPropagation();
+            
+            // Get the parent card back
+            const cardBack = button.closest('.card-back');
+            
+            // Remove active class from all tabs and buttons
+            const tabButtons = cardBack.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            const tabContents = cardBack.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding tab
+            button.classList.add('active');
+            cardBack.querySelector(`#${tabId}`).classList.add('active');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Arrays and Hashing problems
+            const arraysProblems = [
+                {
+                    id: 'contains-duplicate',
+                    title: 'Contains Duplicate',
+                    difficulty: 'easy',
+                    content: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
+                    oneLiner: 'Use a set to check if any element repeats.',
+                    threeLiner: 'We go through each number.<br>We keep a list of ones we\'ve already seen.<br>If a number shows up again, we know it\'s a duplicate.',
+                    mnemonics: [
+                        '"Seen before?" → if num in seen: return True',
+                        '"Add new" → seen.add(num)',
+                        '"End clean" → return False'
+                    ],
+                    code: `def containsDuplicate(nums):
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False`
+                },
+                {
+                    id: 'valid-anagram',
+                    title: 'Valid Anagram',
+                    difficulty: 'easy',
+                    content: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of a different word, using all the original letters exactly once.',
+                    oneLiner: 'Compare character counts in both strings.',
+                    threeLiner: 'Count how many times each letter appears in both strings.<br>If every letter occurs the same number of times, it\'s an anagram.<br>If not, it\'s not an anagram.',
+                    mnemonics: [
+                        '"Count chars" → Counter(s) == Counter(t)',
+                        '"Length check" → if len(s) != len(t): return False',
+                        '"Count compare" → For each char, compare counts'
+                    ],
+                    code: `def isAnagram(s, t):
+    if len(s) != len(t):
+        return False
+    
+    count_s, count_t = {}, {}
+    
+    for i in range(len(s)):
+        count_s[s[i]] = count_s.get(s[i], 0) + 1
+        count_t[t[i]] = count_t.get(t[i], 0) + 1
+    
+    return count_s == count_t`
+                },
+                {
+                    id: 'two-sum',
+                    title: 'Two Sum',
+                    difficulty: 'easy',
+                    content: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
+                    oneLiner: 'Use a hash map to store complements.',
+                    threeLiner: 'For each number, calculate its complement (target - number).<br>Store each number and its index in a hash map.<br>If you find a complement in the map, return both indices.',
+                    mnemonics: [
+                        '"Complement check" → if target - num in seen',
+                        '"Store index" → seen[num] = i',
+                        '"Return pairs" → return [seen[target - num], i]'
+                    ],
+                    code: `def twoSum(nums, target):
+    seen = {}  # val -> index
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    
+    return []  # No solution found`
+                },
+                {
+                    id: 'group-anagrams',
+                    title: 'Group Anagrams',
+                    difficulty: 'medium',
+                    content: 'Given an array of strings strs, group the anagrams together. You can return the answer in any order. An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.',
+                    oneLiner: 'Use sorted strings as hash map keys.',
+                    threeLiner: 'When words are anagrams, they have the same letters.<br>Sort each word\'s letters to create a unique key.<br>Group words with the same key together.',
+                    mnemonics: [
+                        '"Sort as key" → key = "".join(sorted(word))',
+                        '"Group by key" → result[key].append(word)',
+                        '"Return groups" → return list(result.values())'
+                    ],
+                    code: `def groupAnagrams(strs):
+    anagram_groups = {}
+    
+    for word in strs:
+        # Sort the word to use as a key
+        sorted_word = ''.join(sorted(word))
+        
+        # Add to existing group or create new group
+        if sorted_word in anagram_groups:
+            anagram_groups[sorted_word].append(word)
+        else:
+            anagram_groups[sorted_word] = [word]
+    
+    # Return all groups
+    return list(anagram_groups.values())`
+                },
+                {
+                    id: 'top-k-frequent',
+                    title: 'Top K Frequent Elements',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.',
+                    oneLiner: 'Count frequencies, then use bucket sort or heap.',
+                    threeLiner: 'Count how often each number appears.<br>Sort the numbers by their counts.<br>Return the k numbers with highest counts.',
+                    mnemonics: [
+                        '"Count freqs" → counter = Counter(nums)',
+                        '"Sort by freq" → counter.most_common(k)',
+                        '"Extract nums" → [num for num, _ in most_common]'
+                    ],
+                    code: `def topKFrequent(nums, k):
+    # Count frequencies
+    count = {}
+    for num in nums:
+        count[num] = count.get(num, 0) + 1
+    
+    # Create buckets (frequency -> list of numbers)
+    freq = [[] for _ in range(len(nums) + 1)]
+    for num, count in count.items():
+        freq[count].append(num)
+    
+    # Collect top k elements
+    result = []
+    for i in range(len(freq) - 1, 0, -1):
+        for num in freq[i]:
+            result.append(num)
+            if len(result) == k:
+                return result`
+                }
+            ];
+            
+            // Two Pointers problems
+            const twoPointersProblems = [
+                {
+                    id: 'valid-palindrome',
+                    title: 'Valid Palindrome',
+                    difficulty: 'easy',
+                    content: 'Given a string s, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases. A palindrome reads the same backward as forward.',
+                    oneLiner: 'Use two pointers from both ends, comparing characters after filtering.',
+                    threeLiner: 'Ignore characters that aren\'t letters or numbers.<br>Check if the first letter matches the last letter, then move inward.<br>If they all match, it\'s a palindrome!',
+                    mnemonics: [
+                        '"Skip non-alphanumeric" → while not char.isalnum()',
+                        '"Compare lowercase" → if s[l].lower() != s[r].lower(): return False',
+                        '"Move inward" → l++, r--'
+                    ],
+                    code: `def isPalindrome(s):
+    l, r = 0, len(s) - 1
+    
+    while l < r:
+        while l < r and not s[l].isalnum():
+            l += 1
+        while l < r and not s[r].isalnum():
+            r -= 1
+            
+        if s[l].lower() != s[r].lower():
+            return False
+            
+        l += 1
+        r -= 1
+        
+    return True`
+                },
+                {
+                    id: 'container-with-most-water',
+                    title: 'Container With Most Water',
+                    difficulty: 'medium',
+                    content: 'Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0). Find two lines, which, together with the x-axis, forms a container that contains the most water.',
+                    oneLiner: 'Use two pointers from both ends to maximize area.',
+                    threeLiner: 'Start with the widest container (left and right ends).<br>Calculate area as width × minimum height.<br>Move the pointer at the shorter wall inward.',
+                    mnemonics: [
+                        '"Area formula" → area = min(height[l], height[r]) * (r - l)',
+                        '"Move shorter wall" → if height[l] < height[r]: l++ else r--',
+                        '"Track max" → max_area = max(max_area, area)'
+                    ],
+                    code: `def maxArea(height):
+    l, r = 0, len(height) - 1
+    max_area = 0
+    
+    while l < r:
+        area = min(height[l], height[r]) * (r - l)
+        max_area = max(max_area, area)
+        
+        if height[l] < height[r]:
+            l += 1
+        else:
+            r -= 1
+            
+    return max_area`
+                },
+                {
+                    id: 'three-sum',
+                    title: '3Sum',
+                    difficulty: 'medium',
+                    content: 'Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets.',
+                    oneLiner: 'Sort array, then use two-pointer approach for each value.',
+                    threeLiner: 'Sort the array first.<br>For each number, use two pointers to find pairs that sum to its negative.<br>Skip duplicates to avoid repeating the same triplet.',
+                    mnemonics: [
+                        '"Sort first" → nums.sort()',
+                        '"Iterate & 2sum" → for i in range(n): twoSum(nums, i)',
+                        '"Skip dups" → while j < k and nums[j] == nums[j-1]: j += 1'
+                    ],
+                    code: `def threeSum(nums):
+    nums.sort()
+    triplets = []
+    n = len(nums)
+    
+    for i in range(n):
+        # Skip duplicate first elements
+        if i > 0 and nums[i] == nums[i-1]:
+            continue
+            
+        # Two Sum II approach for the remaining elements
+        left, right = i + 1, n - 1
+        target = -nums[i]
+        
+        while left < right:
+            current_sum = nums[left] + nums[right]
+            
+            if current_sum < target:
+                left += 1
+            elif current_sum > target:
+                right -= 1
+            else:
+                triplets.append([nums[i], nums[left], nums[right]])
+                
+                # Skip duplicates
+                left += 1
+                while left < right and nums[left] == nums[left-1]:
+                    left += 1
+        
+    return triplets`
+                }
+            ];
+            
+            // 1D Dynamic Programming problems
+            const dp1DProblems = [
+                {
+                    id: 'climbing-stairs',
+                    title: 'Climbing Stairs',
+                    difficulty: 'easy',
+                    content: 'You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?',
+                    oneLiner: 'Use Fibonacci-style bottom-up DP to count steps.',
+                    threeLiner: 'You can climb 1 or 2 stairs at a time.<br>Count how many ways to get to each stair.<br>It\'s like adding ways from two previous steps.',
+                    mnemonics: [
+                        '"Fibonacci step" → first, second = second, first + second',
+                        '"Start base" → first, second = 1, 2',
+                        '"Return top" → return second'
+                    ],
+                    code: `def climbStairs(n):
+    if n <= 2:
+        return n
+    first, second = 1, 2
+    for _ in range(3, n + 1):
+        first, second = second, first + second
+    return second`
+                },
+                {
+                    id: 'house-robber',
+                    title: 'House Robber',
+                    difficulty: 'medium',
+                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected, and they will automatically contact the police if two adjacent houses were broken into on the same night. Given an array of non-negative integers representing the amount of money of each house, determine the maximum amount of money you can rob tonight without alerting the police.',
+                    oneLiner: 'Use DP to track max loot by either robbing or skipping each house.',
+                    threeLiner: 'Can\'t rob two houses in a row.<br>Each time, choose: rob this or skip it.<br>Keep track of best steal.',
+                    mnemonics: [
+                        '"Rob or skip" → first, second = second, max(second, first + num)',
+                        '"Track rolling max" → first, second = 0, 0',
+                        '"Final loot" → return second'
+                    ],
+                    code: `def rob(nums):
+    if not nums:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    first, second = 0, 0
+    for num in nums:
+        first, second = second, max(second, first + num)
+    return second`
+                },
+                {
+                    id: 'house-robber-ii',
+                    title: 'House Robber II',
+                    difficulty: 'medium',
+                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. All houses at this place are arranged in a circle. That means the first house is the neighbor of the last one. Meanwhile, adjacent houses have a security system connected, and it will automatically contact the police if two adjacent houses were broken into on the same night. Given an array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.',
+                    oneLiner: 'Apply House Robber twice: once without the first house, once without the last.',
+                    threeLiner: 'Houses form a circle, so first and last are neighbors.<br>Consider two scenarios: skip the first house or skip the last.<br>Take the maximum result from those two cases.',
+                    mnemonics: [
+                        '"Two cases" → rob(nums[1:]) or rob(nums[:-1])',
+                        '"Reuse House Robber" → Define helper for linear case',
+                        '"Take max" → return max(rob1, rob2)'
+                    ],
+                    code: `def rob(nums):
+    def rob_helper(houses):
+        prev1, prev2 = 0, 0
+        for house in houses:
+            prev1, prev2 = prev2, max(prev2, prev1 + house)
+        return prev2
+    
+    if len(nums) == 0:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    
+    # Rob houses 1 to n-1 (excluding the last house)
+    rob1 = rob_helper(nums[:-1])
+    # Rob houses 2 to n (excluding the first house)
+    rob2 = rob_helper(nums[1:])
+    
+    return max(rob1, rob2)`
+                }
+            ];
+            
+            // Build problem cards for all categories
+            buildProblemCards('arrays-hashing', arraysProblems);
+            buildProblemCards('two-pointers', twoPointersProblems);
+            buildProblemCards('1d-dp', dp1DProblems);
+            
+            // More topics can be added similarly
+            
+            // Show homepage by default
+            showHomePage();
+        });
+        
+        // Function to build and add all problem cards for a topic
+        function buildProblemCards(topicId, problems) {
+            const container = document.querySelector('.flashcard-container');
+            
+            problems.forEach((problem, index) => {
+                // Create the flashcard element
+                const flashcard = document.createElement('div');
+                flashcard.id = `${topicId}-${index+1}`;
+                flashcard.className = `flashcard ${topicId}-problem hidden`;
+                flashcard.onclick = function() { flipCard(this); };
+                
+                // Create the card inner HTML
+                flashcard.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-title">
+                                ${problem.title}
+                                <span class="difficulty ${problem.difficulty}">${problem.difficulty}</span>
+                            </div>
+                            <div class="card-content">
+                                <p>${problem.content}</p>
+                            </div>
+                            <div class="flip-indicator">Click to flip</div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-title">${problem.title} - Solution</div>
+                            <div class="solution-tabs">
+                                <button class="tab-btn active" onclick="showTab(this, '${topicId}-${index}-oneliner')">One-liner</button>
+                                <button class="tab-btn" onclick="showTab(this, '${topicId}-${index}-code')">Code</button>
+                            </div>
+                            
+                            <div id="${topicId}-${index}-oneliner" class="tab-content active">
+                                <div class="one-liner">
+                                    <h3>One-liner:</h3>
+                                    <p>${problem.oneLiner}</p>
+                                </div>
+                            </div>
+                            
+                            <div id="${topicId}-${index}-threeliner" class="tab-content">
+                                <div class="three-liner">
+                                    <h3>3-liner for kids:</h3>
+                                    <p>${problem.threeLiner}</p>
+                                </div>
+                            </div>
+                            
+                            <div id="${topicId}-${index}-mnemonic" class="tab-content">
+                                <div class="mnemonic">
+                                    <h3>Mnemonics:</h3>
+                                    <ul>
+                                        ${problem.mnemonics.map(m => `<li>${m}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div id="${topicId}-${index}-code" class="tab-content">
+                                <div class="code-block">
+                                    <code>${problem.code}</code>
+                                </div>
+                            </div>
+                            
+                            <div class="flip-indicator">Click to flip back</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add the flashcard to the container
+                container.appendChild(flashcard);
+            });
+            
+            // Store the problems for this topic
+            problemsByTopic[topicId] = problems;
+        }
+    </script>
+</body>
+</html>(this, '${topicId}-${index}-threeliner')">3-liner</button>
+                                <button class="tab-btn" onclick="showTab(this, '${topicId}-${index}-mnemonic')">Mnemonic</button>
+                                <button class="tab-btn" onclick="showTab<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -239,6 +756,7 @@
             display: flex;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             margin-bottom: 1rem;
+            overflow-x: auto;
         }
         
         .solution-tabs button {
@@ -260,6 +778,8 @@
         
         .tab-content {
             display: none;
+            height: 65%;
+            overflow-y: auto;
         }
         
         .tab-content.active {
@@ -276,10 +796,13 @@
             font-family: "Courier New", monospace;
             font-size: 0.9rem;
             line-height: 1.5;
+            max-height: 100%;
         }
         
         .code-block code {
             color: #e6e6e6;
+            white-space: pre;
+            display: block;
         }
         
         /* Content styling */
