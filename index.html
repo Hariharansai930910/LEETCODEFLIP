@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Flashcards</title>
+    <style>
+        :root {
+            --dark-blue: #1e2a3a;
+            --medium-blue: #2c3e50;
+            --accent-blue: #3498db;
+            --light-blue: #b3e5fc;
+            --white: #ffffff;
+            --gray: #f4f4f5;
+            --dark-gray: #e4e4e7;
+            --text: #333;
+            --text-light: #666;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --card-height: 300px;
+            --green: #4caf50;
+            --yellow: #ffc107;
+            --orange: #ff9800;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--gray);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+        }
+        
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .back-button {
+            display: inline-block;
+            background-color: var(--medium-blue);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .topics-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .topic-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .topic-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark-blue);
+        }
+        
+        .topic-info {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .problem-count {
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+        
+        /* Topic View */
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .topic-header h2 {
+            font-size: 1.5rem;
+            color: var(--dark-blue);
+        }
+        
+        .problem-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .problem-counter {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-button {
+            background-color: var(--white);
+            border: 1px solid var(--dark-gray);
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* Card Styling */
+        .flashcard-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .flashcard {
+            perspective: 1000px;
+            height: var(--card-height);
+            margin-bottom: 2rem;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+        }
+        
+        .flashcard.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow: auto;
+        }
+        
+        .card-front {
+            background-color: var(--white);
+        }
+        
+        .card-back {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            transform: rotateY(180deg);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .difficulty {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .easy {
+            background-color: var(--green);
+            color: var(--white);
+        }
+        
+        .medium {
+            background-color: var(--orange);
+            color: var(--white);
+        }
+        
+        .hard {
+            background-color: #e74c3c;
+            color: var(--white);
+        }
+        
+        .card-content {
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
+        
+        .flip-indicator {
+            position: absolute;
+            bottom: 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            left: 0;
+        }
+        
+        /* Solution Tab Navigation */
+        .solution-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+        }
+        
+        .solution-tabs button {
+            background: none;
+            border: none;
+            color: var(--white);
+            opacity: 0.7;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s, border-bottom 0.2s;
+            margin-right: 1rem;
+        }
+        
+        .solution-tabs button.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Code Section */
+        .code-block {
+            background-color: #1a2634;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: auto;
+            font-family: "Courier New", monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block code {
+            color: #e6e6e6;
+        }
+        
+        /* Content styling */
+        .one-liner, .three-liner, .mnemonic {
+            margin-bottom: 1.5rem;
+        }
+        
+        .one-liner h3, .three-liner h3, .mnemonic h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--light-blue);
+        }
+        
+        .mnemonic li {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .topics-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-height {
+                --card-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>LeetCode Flashcards</h1>
+    </header>
+    
+    <!-- Home Page with Topics -->
+    <div id="home-page" class="container">
+        <h2>Select a Topic</h2>
+        <div class="topics-list">
+            <div class="topic-card" onclick="showTopic('arrays-hashing')">
+                <div class="topic-title">Arrays and Hashing</div>
+                <div class="topic-info">Key techniques for arrays and hash maps</div>
+                <div class="problem-count">9 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('two-pointers')">
+                <div class="topic-title">Two Pointers</div>
+                <div class="topic-info">Efficient array manipulation techniques</div>
+                <div class="problem-count">5 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('sliding-window')">
+                <div class="topic-title">Sliding Window</div>
+                <div class="topic-info">Optimized subarray pattern</div>
+                <div class="problem-count">6 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('binary-search')">
+                <div class="topic-title">Binary Search</div>
+                <div class="topic-info">Divide and conquer approach</div>
+                <div class="problem-count">7 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('stack')">
+                <div class="topic-title">Stack</div>
+                <div class="topic-info">LIFO data structure applications</div>
+                <div class="problem-count">7 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('linked-list')">
+                <div class="topic-title">Linked List</div>
+                <div class="topic-info">Node-based linear data structure</div>
+                <div class="problem-count">11 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('trees')">
+                <div class="topic-title">Trees</div>
+                <div class="topic-info">Tree traversal and manipulation</div>
+                <div class="problem-count">15 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('trie')">
+                <div class="topic-title">Trie</div>
+                <div class="topic-info">Advanced tree-based data structure</div>
+                <div class="problem-count">3 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('heap-priority-queue')">
+                <div class="topic-title">Heap/Priority Queue</div>
+                <div class="topic-info">Efficient maximum/minimum operations</div>
+                <div class="problem-count">7 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('backtracking')">
+                <div class="topic-title">Backtracking</div>
+                <div class="topic-info">Constraint satisfaction problems</div>
+                <div class="problem-count">9 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('graphs')">
+                <div class="topic-title">Graphs</div>
+                <div class="topic-info">Network and connection problems</div>
+                <div class="problem-count">13 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('advanced-graphs')">
+                <div class="topic-title">Advanced Graphs</div>
+                <div class="topic-info">Complex graph algorithms</div>
+                <div class="problem-count">6 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('1d-dp')">
+                <div class="topic-title">1-D Dynamic Programming</div>
+                <div class="topic-info">Linear DP problems</div>
+                <div class="problem-count">9 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('2d-dp')">
+                <div class="topic-title">2-D Dynamic Programming</div>
+                <div class="topic-info">Grid and matrix DP problems</div>
+                <div class="problem-count">11 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('greedy')">
+                <div class="topic-title">Greedy</div>
+                <div class="topic-info">Optimal local choice problems</div>
+                <div class="problem-count">8 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('intervals')">
+                <div class="topic-title">Intervals</div>
+                <div class="topic-info">Range and segment problems</div>
+                <div class="problem-count">6 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('math-geometry')">
+                <div class="topic-title">Math & Geometry</div>
+                <div class="topic-info">Mathematical and spatial problems</div>
+                <div class="problem-count">8 problems</div>
+            </div>
+            
+            <div class="topic-card" onclick="showTopic('bit-manipulation')">
+                <div class="topic-title">Bit Manipulation</div>
+                <div class="topic-info">Binary operations</div>
+                <div class="problem-count">7 problems</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Topic Pages (initially hidden) -->
+    <div id="topic-page" class="container hidden">
+        <button class="back-button" onclick="showHomePage()">Back to Topics</button>
+        
+        <div class="topic-header">
+            <h2 id="current-topic-title">Topic Title</h2>
+        </div>
+        
+        <div class="problem-nav">
+            <div class="problem-counter">Problem <span id="current-problem">1</span> of <span id="total-problems">6</span></div>
+            <div class="nav-buttons">
+                <button class="nav-button" id="prev-btn" onclick="navigateProblem(-1)">Previous</button>
+                <button class="nav-button" id="next-btn" onclick="navigateProblem(1)">Next</button>
+            </div>
+        </div>
+        
+        <div class="flashcard-container">
+            <!-- Example flashcard for Network Delay Time -->
+            <div id="advanced-graphs-1" class="flashcard" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-title">
+                            Network Delay Time
+                            <span class="difficulty medium">Medium</span>
+                        </div>
+                        <div class="card-content">
+                            <p>You are given a network of n nodes, labeled from 1 to n. You are also given times, a list of travel times as directed edges where times[i] = (ui, vi, wi) means node ui to node vi takes wi time. Return the minimum time it takes for all the n nodes to receive the signal, or -1 if it is impossible.</p>
+                        </div>
+                        <div class="flip-indicator">Click to flip</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-title">Network Delay Time - Solution</div>
+                        <div class="solution-tabs">
+                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
+                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
+                        </div>
+                        
+                        <div id="one-liner-tab" class="tab-content active">
+                            <div class="one-liner">
+                                <h3>One-liner:</h3>
+                                <p>Use Dijkstra's algorithm to find shortest time to all nodes.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="three-liner-tab" class="tab-content">
+                            <div class="three-liner">
+                                <h3>3-liner for kids:</h3>
+                                <p>We send a signal from one point.<br>
+                                We figure out how fast it can reach every other point.<br>
+                                The longest of those times is our answer.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="mnemonic-tab" class="tab-content">
+                            <div class="mnemonic">
+                                <h3>Mnemonics:</h3>
+                                <ul>
+                                    <li>"Build graph" → graph[u].append((v, w))</li>
+                                    <li>"Min-heap Dijkstra" → heappop(heap) gives node with smallest time</li>
+                                    <li>"Update time" → if new_time < dist[v]: update and push</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="code-tab" class="tab-content">
+                            <div class="code-block">
+                                <code>
+def networkDelayTime(times, n, k):
+    edges = collections.defaultdict(list)
+    for u, v, w in times:
+        edges[u].append((v, w))
+
+    minHeap = [(0, k)]
+    visit = set()
+    t = 0
+    while minHeap:
+        w1, n1 = heapq.heappop(minHeap)
+        if n1 in visit:
+            continue
+        visit.add(n1)
+        t = w1
+
+        for n2, w2 in edges[n1]:
+            if n2 not in visit:
+                heapq.heappush(minHeap, (w1 + w2, n2))
+    return t if len(visit) == n else -1
+                                </code>
+                            </div>
+                        </div>
+                        
+                        <div class="flip-indicator">Click to flip back</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reconstruct Itinerary -->
+            <div id="advanced-graphs-2" class="flashcard hidden" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-title">
+                            Reconstruct Itinerary
+                            <span class="difficulty medium">Medium</span>
+                        </div>
+                        <div class="card-content">
+                            <p>Given a list of airline tickets represented by pairs of departure and arrival airports [from, to], reconstruct the itinerary in order. All of the tickets belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.</p>
+                            <p>If there are multiple valid itineraries, you should return the itinerary that has the smallest lexical order when read as a single string.</p>
+                        </div>
+                        <div class="flip-indicator">Click to flip</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-title">Reconstruct Itinerary - Solution</div>
+                        <div class="solution-tabs">
+                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
+                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
+                        </div>
+                        
+                        <div id="one-liner-tab" class="tab-content active">
+                            <div class="one-liner">
+                                <h3>One-liner:</h3>
+                                <p>Use DFS + min-heap to build lexicographically smallest itinerary.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="three-liner-tab" class="tab-content">
+                            <div class="three-liner">
+                                <h3>3-liner for kids:</h3>
+                                <p>We treat each airport as a point.<br>
+                                We travel using the smallest possible word (alphabetically).<br>
+                                When all tickets are used, that's our path.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="mnemonic-tab" class="tab-content">
+                            <div class="mnemonic">
+                                <h3>Mnemonics:</h3>
+                                <ul>
+                                    <li>"Build min-heap graph" → graph[frm].append(to); sort tickets</li>
+                                    <li>"DFS visit" → while graph[airport]: dfs(next_dest)</li>
+                                    <li>"Build itinerary" → res.appendleft(airport)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="code-tab" class="tab-content">
+                            <div class="code-block">
+                                <code>
+def findItinerary(tickets):
+    adj = defaultdict(list)
+    for src, dst in sorted(tickets)[::-1]:
+        adj[src].append(dst)
+        
+    stack = ["JFK"]
+    res = []
+    
+    while stack:
+        curr = stack[-1]
+        if not adj[curr]:
+            res.append(stack.pop())
+        else:
+            stack.append(adj[curr].pop())
+            
+    return res[::-1]
+                                </code>
+                            </div>
+                        </div>
+                        
+                        <div class="flip-indicator">Click to flip back</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Min Cost to Connect All Points -->
+            <div id="advanced-graphs-3" class="flashcard hidden" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-title">
+                            Min Cost to Connect All Points
+                            <span class="difficulty medium">Medium</span>
+                        </div>
+                        <div class="card-content">
+                            <p>You are given an array points representing integer coordinates of some points on a 2D-plane, where points[i] = [xi, yi].</p>
+                            <p>The cost of connecting two points [xi, yi] and [xj, yj] is the manhattan distance between them: |xi - xj| + |yi - yj|.</p>
+                            <p>Return the minimum cost to make all points connected.</p>
+                        </div>
+                        <div class="flip-indicator">Click to flip</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-title">Min Cost to Connect All Points - Solution</div>
+                        <div class="solution-tabs">
+                            <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab')">One-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'three-liner-tab')">3-liner</button>
+                            <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab')">Mnemonic</button>
+                            <button class="tab-btn" onclick="showTab(this, 'code-tab')">Code</button>
+                        </div>
+                        
+                        <div id="one-liner-tab" class="tab-content active">
+                            <div class="one-liner">
+                                <h3>One-liner:</h3>
+                                <p>Use Prim's algorithm (MST) with min-heap for Manhattan distances.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="three-liner-tab" class="tab-content">
+                            <div class="three-liner">
+                                <h3>3-liner for kids:</h3>
+                                <p>We connect all dots with the least total cost.<br>
+                                We always choose the shortest connection that's not yet used.<br>
+                                When all points are connected, we stop.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="mnemonic-tab" class="tab-content">
+                            <div class="mnemonic">
+                                <h3>Mnemonics:</h3>
+                                <ul>
+                                    <li>"Heap init" → heap = [(0, 0)] (cost, node)</li>
+                                    <li>"Track visited" → if node not in visited: add to cost</li>
+                                    <li>"Push neighbors" → for every next_point: heappush with distance</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="code-tab" class="tab-content">
+                            <div class="code-block">
+                                <code>
+def minCostConnectPoints(points):
+    n, node = len(points), 0
+    dist = [100000000] * n
+    visit = [False] * n
+    edges, res = 0, 0
+
+    while edges < n - 1:
+        visit[node] = True
+        nextNode = -1
+        for i in range(n):
+            if visit[i]:
+                continue
+            curDist = (abs(points[i][0] - points[node][0]) + 
+                      abs(points[i][1] - points[node][1]))
+            dist[i] = min(dist[i], curDist)
+            if nextNode == -1 or dist[i] < dist[nextNode]:
+                nextNode = i
+                
+        res += dist[nextNode]
+        node = nextNode
+        edges += 1
+
+    return res
+                                </code>
+                            </div>
+                        </div>
+                        
+                        <div class="flip-indicator">Click to flip back</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- All other problems would be added similarly -->
+            
+        </div>
+    </div>
+    
+    <footer>
+        © 2025 LeetCode Flashcards - Master Algorithms & Data Structures
+    </footer>
+    
+    <script>
+        // Show home page or topic page
+        function showHomePage() {
+            document.getElementById('home-page').classList.remove('hidden');
+            document.getElementById('topic-page').classList.add('hidden');
+        }
+        
+        function showTopic(topicId) {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('topic-page').classList.remove('hidden');
+            
+            // Set the current topic title
+            const topicTitles = {
+                'arrays-hashing': 'Arrays and Hashing',
+                'two-pointers': 'Two Pointers',
+                'sliding-window': 'Sliding Window',
+                'binary-search': 'Binary Search',
+                'stack': 'Stack',
+                'linked-list': 'Linked List',
+                'trees': 'Trees',
+                'trie': 'Trie',
+                'heap-priority-queue': 'Heap/Priority Queue',
+                'backtracking': 'Backtracking',
+                'graphs': 'Graphs',
+                'advanced-graphs': 'Advanced Graphs',
+                '1d-dp': '1-D Dynamic Programming',
+                '2d-dp': '2-D Dynamic Programming',
+                'greedy': 'Greedy',
+                'intervals': 'Intervals',
+                'math-geometry': 'Math & Geometry',
+                'bit-manipulation': 'Bit Manipulation'
+            };
+            
+            document.getElementById('current-topic-title').textContent = topicTitles[topicId];
+            
+            // Hide all problem cards
+            const allProblems = document.querySelectorAll('.flashcard');
+            allProblems.forEach(problem => {
+                problem.classList.add('hidden');
+            });
+            
+            // Show only the problems for this topic
+            const topicProblems = document.querySelectorAll(`[id^="${topicId}"]`);
+            if (topicProblems.length > 0) {
+                topicProblems[0].classList.remove('hidden');
+                
+                // Update problem counter
+                document.getElementById('current-problem').textContent = 1;
+                document.getElementById('total-problems').textContent = topicProblems.length;
+                
+                // Enable/disable navigation buttons
+                document.getElementById('prev-btn').disabled = true;
+                document.getElementById('next-btn').disabled = topicProblems.length <= 1;
+            }
+        }
+        
+        // Navigate between problems
+        let currentProblemIndex = 0;
+        
+        function navigateProblem(direction) {
+            const topicId = document.getElementById('current-topic-title').textContent.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            const topicProblems = document.querySelectorAll(`[id^="${topicId}"]`);
+            
+            // Hide current problem
+            topicProblems[currentProblemIndex].classList.add('hidden');
+            
+            // Update index
+            currentProblemIndex += direction;
+            
+            // Show new problem
+            topicProblems[currentProblemIndex].classList.remove('hidden');
+            
+            // Update problem counter
+            document.getElementById('current-problem').textContent = currentProblemIndex + 1;
+            
+            // Update button state
+            document.getElementById('prev-btn').disabled = currentProblemIndex === 0;
+            document.getElementById('next-btn').disabled = currentProblemIndex === topicProblems.length - 1;
+            
+            // Reset any flipped cards
+            topicProblems[currentProblemIndex].classList.remove('flipped');
+        }
+        
+        // Flip card functionality
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+        
+        // Tab navigation in solution
+        function showTab(button, tabId) {
+            // Get the parent card
+            const card = button.closest('.card-back');
+            
+            // Remove active class from all tabs and buttons
+            const tabButtons = card.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            const tabContents = card.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding tab
+            button.classList.add('active');
+            card.querySelector(`#${tabId}`).classList.add('active');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add more algorithm flashcards below for other topics
+            
+            // Arrays and Hashing problems
+            const arraysProblems = [
+                {
+                    id: 'arrays-hashing-1',
+                    title: 'Contains Duplicate',
+                    difficulty: 'easy',
+                    content: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
+                    oneLiner: 'Use a set to check if any element repeats.',
+                    threeLiner: 'We go through each number.<br>We keep a list of ones we\'ve already seen.<br>If a number shows up again, we know it\'s a duplicate.',
+                    mnemonics: [
+                        '"Seen before?" → if num in seen: return True',
+                        '"Add new" → seen.add(num)',
+                        '"End clean" → return False'
+                    ],
+                    code: `def containsDuplicate(nums):
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False`
+                },
+                {
+                    id: 'arrays-hashing-2',
+                    title: 'Valid Anagram',
+                    difficulty: 'easy',
+                    content: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of a different word, using all the original letters exactly once.',
+                    oneLiner: 'Compare character counts in both strings.',
+                    threeLiner: 'Count how many times each letter appears in both strings.<br>If every letter occurs the same number of times, it\'s an anagram.<br>If not, it\'s not an anagram.',
+                    mnemonics: [
+                        '"Count chars" → Counter(s) == Counter(t)',
+                        '"Length check" → if len(s) != len(t): return False',
+                        '"Count compare" → For each char, compare counts'
+                    ],
+                    code: `def isAnagram(s, t):
+    if len(s) != len(t):
+        return False
+    
+    count_s, count_t = {}, {}
+    
+    for i in range(len(s)):
+        count_s[s[i]] = count_s.get(s[i], 0) + 1
+        count_t[t[i]] = count_t.get(t[i], 0) + 1
+    
+    return count_s == count_t`
+                }
+            ];
+            
+            // Two Pointers problems
+            const twoPointersProblems = [
+                {
+                    id: 'two-pointers-1',
+                    title: 'Valid Palindrome',
+                    difficulty: 'easy',
+                    content: 'Given a string s, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases. A palindrome reads the same backward as forward.',
+                    oneLiner: 'Use two pointers from both ends, comparing characters after filtering.',
+                    threeLiner: 'Ignore characters that aren\'t letters or numbers.<br>Check if the first letter matches the last letter, then move inward.<br>If they all match, it\'s a palindrome!',
+                    mnemonics: [
+                        '"Skip non-alphanumeric" → while not char.isalnum()',
+                        '"Compare lowercase" → if s[l].lower() != s[r].lower(): return False',
+                        '"Move inward" → l++, r--'
+                    ],
+                    code: `def isPalindrome(s):
+    l, r = 0, len(s) - 1
+    
+    while l < r:
+        while l < r and not s[l].isalnum():
+            l += 1
+        while l < r and not s[r].isalnum():
+            r -= 1
+            
+        if s[l].lower() != s[r].lower():
+            return False
+            
+        l += 1
+        r -= 1
+        
+    return True`
+                },
+                {
+                    id: 'two-pointers-2',
+                    title: 'Container With Most Water',
+                    difficulty: 'medium',
+                    content: 'Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0). Find two lines, which, together with the x-axis, forms a container that contains the most water.',
+                    oneLiner: 'Use two pointers from both ends to maximize area.',
+                    threeLiner: 'Start with the widest container (left and right ends).<br>Calculate area as width × minimum height.<br>Move the pointer at the shorter wall inward.',
+                    mnemonics: [
+                        '"Area formula" → area = min(height[l], height[r]) * (r - l)',
+                        '"Move shorter wall" → if height[l] < height[r]: l++ else r--',
+                        '"Track max" → max_area = max(max_area, area)'
+                    ],
+                    code: `def maxArea(height):
+    l, r = 0, len(height) - 1
+    max_area = 0
+    
+    while l < r:
+        area = min(height[l], height[r]) * (r - l)
+        max_area = max(max_area, area)
+        
+        if height[l] < height[r]:
+            l += 1
+        else:
+            r -= 1
+            
+    return max_area`
+                }
+            ];
+            
+            // 1D Dynamic Programming problems
+            const dp1DProblems = [
+                {
+                    id: '1d-dp-1',
+                    title: 'Climbing Stairs',
+                    difficulty: 'easy',
+                    content: 'You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?',
+                    oneLiner: 'Use Fibonacci-style bottom-up DP to count steps.',
+                    threeLiner: 'You can climb 1 or 2 stairs at a time.<br>Count how many ways to get to each stair.<br>It\'s like adding ways from two previous steps.',
+                    mnemonics: [
+                        '"Fibonacci step" → first, second = second, first + second',
+                        '"Start base" → first, second = 1, 2',
+                        '"Return top" → return second'
+                    ],
+                    code: `def climbStairs(n):
+    if n <= 2:
+        return n
+    first, second = 1, 2
+    for _ in range(3, n + 1):
+        first, second = second, first + second
+    return second`
+                },
+                {
+                    id: '1d-dp-2',
+                    title: 'House Robber',
+                    difficulty: 'medium',
+                    content: 'You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected, and they will automatically contact the police if two adjacent houses were broken into on the same night. Given an array of non-negative integers representing the amount of money of each house, determine the maximum amount of money you can rob tonight without alerting the police.',
+                    oneLiner: 'Use DP to track max loot by either robbing or skipping each house.',
+                    threeLiner: 'Can\'t rob two houses in a row.<br>Each time, choose: rob this or skip it.<br>Keep track of best steal.',
+                    mnemonics: [
+                        '"Rob or skip" → first, second = second, max(second, first + num)',
+                        '"Track rolling max" → first, second = 0, 0',
+                        '"Final loot" → return second'
+                    ],
+                    code: `def rob(nums):
+    if not nums:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    first, second = 0, 0
+    for num in nums:
+        first, second = second, max(second, first + num)
+    return second`
+                }
+            ];
+            
+            // Function to create and add problem cards dynamically
+            function createProblemCards(problems, topicId) {
+                const container = document.querySelector('.flashcard-container');
+                
+                problems.forEach((problem, index) => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.id = problem.id;
+                    card.className = 'flashcard hidden';
+                    card.onclick = function() { flipCard(this); };
+                    
+                    // Card HTML structure
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <div class="card-title">
+                                    ${problem.title}
+                                    <span class="difficulty ${problem.difficulty}">${problem.difficulty}</span>
+                                </div>
+                                <div class="card-content">
+                                    <p>${problem.content}</p>
+                                </div>
+                                <div class="flip-indicator">Click to flip</div>
+                            </div>
+                            <div class="card-back">
+                                <div class="card-title">${problem.title} - Solution</div>
+                                <div class="solution-tabs">
+                                    <button class="tab-btn active" onclick="showTab(this, 'one-liner-tab-${index}')">One-liner</button>
+                                    <button class="tab-btn" onclick="showTab(this, 'three-liner-tab-${index}')">3-liner</button>
+                                    <button class="tab-btn" onclick="showTab(this, 'mnemonic-tab-${index}')">Mnemonic</button>
+                                    <button class="tab-btn" onclick="showTab(this, 'code-tab-${index}')">Code</button>
+                                </div>
+                                
+                                <div id="one-liner-tab-${index}" class="tab-content active">
+                                    <div class="one-liner">
+                                        <h3>One-liner:</h3>
+                                        <p>${problem.oneLiner}</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="three-liner-tab-${index}" class="tab-content">
+                                    <div class="three-liner">
+                                        <h3>3-liner for kids:</h3>
+                                        <p>${problem.threeLiner}</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="mnemonic-tab-${index}" class="tab-content">
+                                    <div class="mnemonic">
+                                        <h3>Mnemonics:</h3>
+                                        <ul>
+                                            ${problem.mnemonics.map(m => `<li>${m}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div id="code-tab-${index}" class="tab-content">
+                                    <div class="code-block">
+                                        <code>${problem.code}</code>
+                                    </div>
+                                </div>
+                                
+                                <div class="flip-indicator">Click to flip back</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add card to container
+                    container.appendChild(card);
+                });
+            }
+            
+            // Add the problem cards
+            createProblemCards(arraysProblems, 'arrays-hashing');
+            createProblemCards(twoPointersProblems, 'two-pointers');
+            createProblemCards(dp1DProblems, '1d-dp');
+        });
+    </script>
+</body>
+</html>
